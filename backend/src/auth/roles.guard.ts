@@ -5,23 +5,22 @@ import {
   Injectable,
 } from '@nestjs/common';
 
+import { Reflector } from '@nestjs/core';
+
 @Injectable()
 export class RolesGuard implements CanActivate {
-  constructor(private roles: string[]) {}
+  constructor(private reflector: Reflector) {}
 
   canActivate(context: ExecutionContext): boolean {
-    const request = context.switchToHttp().getRequest();
-    const user = request.user;
+    const requiredRoles = this.reflector.get<string[]>(
+        'roles',
+        context.getHandler(),
+    );
 
-    if (!user || !user.roles) {
-      throw new ForbiddenException();
-    }
+    if (!requiredRoles) return true;
 
-    const hasRole = this.roles.some((r) => user.roles.includes(r));
-    if (!hasRole) {
-      throw new ForbiddenException();
-    }
+    const { user } = context.switchToHttp().getRequest();
 
-    return true;
+    return requiredRoles.some((role) => user.roles.includes(role));
   }
 }

@@ -17,4 +17,7 @@ export class Match {
 
   @Prop({ type: [{ type: Types.ObjectId, ref: 'User' }] })
   players: Types.ObjectId[];
+
+  @Prop({ default: 5 })
+  cardSize: number;
 }
