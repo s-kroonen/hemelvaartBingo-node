@@ -20,4 +20,8 @@ export class UserRepository {
   async findById(id: string) {
     return this.userModel.findById(id);
   }
+
+  findByIdAndUpdate(userId: string, updated: { currentMatchID: any }, options: { new: boolean }) {
+    return this.userModel.findByIdAndUpdate(userId, updated, options);
+  }
 }

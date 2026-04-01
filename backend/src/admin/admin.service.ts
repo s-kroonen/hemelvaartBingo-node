@@ -16,8 +16,21 @@ export class AdminService {
 
     async assignMaster(matchId: string, userId: string) {
         const match = await this.matchRepo.findById(matchId);
-        if(!match) throw new NotFoundException(`Match with id ${matchId} not found`);
-        match.masters.push(userId);
+
+        if (!match) {
+            throw new NotFoundException(`Match with id ${matchId} not found`);
+        }
+
+        const userObjectId = new Types.ObjectId(userId);
+
+        const alreadyMaster = match.masters.some(
+            (id) => id.toString() === userObjectId.toString(),
+        );
+
+        if (!alreadyMaster) {
+            match.masters.push(userObjectId);
+        }
+
         return match.save();
     }
 

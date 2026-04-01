@@ -1,8 +1,13 @@
-import {Injectable} from "@nestjs/common";
+import {
+    Injectable,
+    NotFoundException,
+    BadRequestException,
+} from '@nestjs/common';
+import {Types} from 'mongoose';
 import {InviteRepository} from "./invite.repository";
 import {MatchRepository} from "../matches/match.repository";
-import {CardService} from "../cards/card.service";
 import {UserRepository} from "../users/user.repository";
+import {CardService} from "../cards/card.service";
 
 @Injectable()
 export class InviteService {
@@ -11,42 +16,71 @@ export class InviteService {
         private matchRepo: MatchRepository,
         private userRepo: UserRepository,
         private cardService: CardService,
-    ) {}
+    ) {
+    }
 
     async joinMatch(token: string, userEmail: string) {
         const invite = await this.inviteRepo.findByToken(token);
 
-        if (!invite) throw new Error('Invalid invite');
+        if (!invite) {
+            throw new NotFoundException('Invalid invite');
+        }
+
+        if (!invite.isActive) {
+            throw new BadRequestException('Invite is inactive');
+        }
+
+        if (invite.expiresAt && invite.expiresAt < new Date()) {
+            throw new BadRequestException('Invite expired');
+        }
 
         const user = await this.userRepo.findByEmail(userEmail);
+        if (!user) {
+            throw new NotFoundException('User not found');
+        }
+
         const match = await this.matchRepo.findById(
             invite.matchId.toString(),
         );
+        if (!match) {
+            throw new NotFoundException('Match not found');
+        }
 
-        // Add user to match if not already
-        if (!match.players.includes(user._id)) {
-            match.players.push(user._id);
+        const userId = new Types.ObjectId(user._id);
+        const matchId = new Types.ObjectId(match._id);
+
+        // Add user to match safely
+        const alreadyInMatch = match.players.some(
+            (id) => id.toString() === userId.toString(),
+        );
+
+        if (!alreadyInMatch) {
+            match.players.push(userId);
             await match.save();
         }
 
         // Set current match
-        user.currentMatchID = match._id;
+        user.currentMatchID = matchId;
         await user.save();
 
-        // Check if card exists
-        const existingCard = await this.cardService.cardRepo.model.findOne({
-            userId: user._id,
-            matchId: match._id,
-        });
+        // Check if card exists (use repo method ideally)
+        const existingCard =
+            await this.cardService.cardRepo.findByUserAndMatch(
+                userId,
+                matchId,
+            );
 
         if (!existingCard) {
             await this.cardService.createCard(
-                user._id.toString(),
-                match._id.toString(),
+                userId.toString(),
+                matchId.toString(),
                 match.cardSize,
             );
         }
 
-        return { success: true, matchId: match._id };
+        return {
+            success: true,
+            matchId: matchId,
+        };
     }
 }

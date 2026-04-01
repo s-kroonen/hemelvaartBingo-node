@@ -1,4 +1,4 @@
-import { Prop, Schema } from '@nestjs/mongoose';
+import {Prop, Schema, SchemaFactory} from '@nestjs/mongoose';
 import { Types } from 'mongoose';
 
 @Schema()
@@ -21,3 +21,5 @@ export class Match {
   @Prop({ default: 5 })
   cardSize: number;
 }
+
+export const MatchSchema = SchemaFactory.createForClass(Match);
