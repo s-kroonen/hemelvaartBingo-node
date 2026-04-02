@@ -5,7 +5,9 @@ export const FirebaseProvider: Provider = {
   provide: 'FIREBASE_ADMIN',
   useFactory: () => {
     return admin.initializeApp({
-      credential: admin.credential.applicationDefault(),
+      credential: admin.credential.cert(
+          require('../../firebase-service-account.json'),
+      ),
     });
   },
 };

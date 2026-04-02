@@ -15,11 +15,11 @@ export default function AuthProvider({ children }: any) {
             console.warn("Auth timeout → continuing without Firebase");
             setLoading(false);
         }, 3000); // fallback
-        // if (!auth) {
-        //     console.warn("Skipping auth (no Firebase)");
-        //     setLoading(false);
-        //     return;
-        // }
+        if (!auth) {
+            console.warn("Skipping auth (no Firebase)");
+            setLoading(false);
+            return;
+        }
         try {
             const unsub = onAuthStateChanged(auth, async (firebaseUser) => {
                 try {

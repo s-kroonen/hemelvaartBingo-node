@@ -1,5 +1,5 @@
 import {useAuthStore} from "../../store/authStore";
-import MatchSelector from "./MatchSelector.tsx";
+// import MatchSelector from "./MatchSelector.tsx";
 import {useNavigate} from "react-router-dom";
 
 export default function MainLayout({children}: any) {
@@ -22,7 +22,7 @@ export default function MainLayout({children}: any) {
             <div className="flex-1 flex flex-col">
                 {/* Topbar */}
                 <div className="h-14 bg-gray-100 flex justify-between px-4 items-center">
-                    <MatchSelector/>
+                    {/*<MatchSelector/>*/}
                     <div>{user?.email}</div>
                 </div>
 
