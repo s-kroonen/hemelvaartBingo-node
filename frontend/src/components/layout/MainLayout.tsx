@@ -1,34 +1,78 @@
-import {useAuthStore} from "../../store/authStore";
-// import MatchSelector from "./MatchSelector.tsx";
-import {useNavigate} from "react-router-dom";
+import { useAuthStore } from "../../store/authStore";
+import { useNavigate, useLocation } from "react-router-dom";
+import MatchSelector from "./MatchSelector";
 
-export default function MainLayout({children}: any) {
+export default function MainLayout({ children }: any) {
     const user = useAuthStore((s) => s.user);
-    let navigate = useNavigate();
+    const navigate = useNavigate();
+    const location = useLocation();
+
+    const navItem = (label: string, path: string) => {
+        const active = location.pathname === path;
+
+        return (
+            <button
+                onClick={() => navigate(path)}
+                className={`px-4 py-2 rounded-xl text-sm font-medium transition
+                    ${active
+                    ? "bg-blue-600 text-white shadow-sm"
+                    : "text-gray-600 hover:bg-blue-100 hover:text-blue-700"
+                }`}
+            >
+                {label}
+            </button>
+        );
+    };
+
     return (
-        <div className="flex h-screen">
-            {/* Sidebar */}
-            <div className="w-64 bg-gray-900 text-white p-4">
-                <nav>
-                    <p>Leaderboard</p>
-                    {user?.roles.includes("master") && <p>Events</p>}
-                    {user?.roles.includes("admin") && (
-                        <p onClick={() => navigate("/admin")}>Admin</p>
-                    )}
-                </nav>
-            </div>
+        <div className="flex flex-col min-h-screen">
+            {/* NAVBAR */}
+            <header className="bg-white/80 backdrop-blur border-b border-blue-100 sticky top-0 z-10 shadow-sm">
+                <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
 
-            {/* Main */}
-            <div className="flex-1 flex flex-col">
-                {/* Topbar */}
-                <div className="h-14 bg-gray-100 flex justify-between px-4 items-center">
-                    {/*<MatchSelector/>*/}
-                    <div>{user?.email}</div>
+                    {/* LEFT SIDE */}
+                    <div className="flex items-center gap-6">
+                        {/* Logo */}
+                        <div
+                            onClick={() => navigate("/")}
+                            className="text-2xl font-bold text-blue-600 cursor-pointer"
+                        >
+                            Bingo
+                        </div>
+                        {/* Match selector */}
+                        <div className="hidden lg:block">
+                            <MatchSelector />
+                        </div>
+
+                        {/* Main navigation */}
+                        <div className="hidden md:flex gap-2">
+                            {navItem("Leaderboard", "/")}
+                        </div>
+                    </div>
+
+                    {/* RIGHT SIDE */}
+                    <div className="flex items-center gap-3">
+                        {/* Role-based links */}
+                        {user?.roles.includes("master") &&
+                            navItem("Events", "/events")}
+
+                        {user?.roles.includes("admin") &&
+                            navItem("Admin", "/admin")}
+
+                        {/* User */}
+                        <div className="ml-2 px-3 py-2 rounded-xl bg-blue-50 text-blue-700 text-sm font-medium">
+                            {user?.email}
+                        </div>
+                    </div>
                 </div>
+            </header>
 
-                {/* Content */}
-                <div className="p-4">{children}</div>
-            </div>
+            {/* CONTENT */}
+            <main className="flex-1 w-full">
+                <div className="max-w-7xl mx-auto p-6">
+                    {children}
+                </div>
+            </main>
         </div>
     );
 }

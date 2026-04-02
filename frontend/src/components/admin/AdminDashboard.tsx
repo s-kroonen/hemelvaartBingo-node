@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { getUsers, getMatches, getInvites } from "../../api/admin";
+import { getUsers, getMatches, getInvites } from "../../api/admin.ts";
 
 export default function AdminDashboard() {
     const users = useQuery({ queryKey: ["users"], queryFn: getUsers });

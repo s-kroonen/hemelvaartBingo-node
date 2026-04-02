@@ -1,30 +1,43 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import LoginPage from "../pages/LoginPage";
-import Dashboard from "../pages/Dashboard";
+import { BrowserRouter, Routes, Route, Outlet } from "react-router-dom";
+import LoginPage from "../components/pages/LoginPage";
+import LeaderboardPage from "../components/pages/LeaderboardPage";
+import AdminDashboard from "../components/admin/AdminDashboard";
+import MainLayout from "../components/layout/MainLayout";
 import ProtectedRoute from "./ProtectedRoute";
-import AdminDashboard from "../features/admin/AdminDashboard.tsx";
+
+/**
+ * Layout wrapper with auth protection
+ */
+function ProtectedLayout() {
+    return (
+        <ProtectedRoute>
+            <MainLayout>
+                <Outlet />
+            </MainLayout>
+        </ProtectedRoute>
+    );
+}
 
 export default function AppRouter() {
     return (
         <BrowserRouter>
             <Routes>
+                {/* Public */}
+
                 <Route path="/login" element={<LoginPage />} />
-                <Route
-                    path="/admin"
-                    element={
-                        <ProtectedRoute roles={["admin"]}>
-                            <AdminDashboard />
-                        </ProtectedRoute>
-                    }
-                />
-                <Route
-                    path="/*"
-                    element={
-                        <ProtectedRoute>
-                            <Dashboard />
-                        </ProtectedRoute>
-                    }
-                />
+                {/* Protected app */}
+                <Route element={<ProtectedLayout />}>
+                    <Route index element={<LeaderboardPage />} />
+
+                    <Route
+                        path="admin"
+                        element={
+                            <ProtectedRoute roles={["admin"]}>
+                                <AdminDashboard />
+                            </ProtectedRoute>
+                        }
+                    />
+                </Route>
             </Routes>
         </BrowserRouter>
     );
