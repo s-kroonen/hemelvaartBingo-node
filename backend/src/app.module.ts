@@ -3,6 +3,7 @@ import {MongooseModule} from '@nestjs/mongoose';
 import {UserModule} from './users/user.module';
 import {AdminModule} from "./admin/admin.module";
 import {FirebaseModule} from "./auth/firebase.module";
+import {MatchModule} from "./matches/match.module";
 import config from "./config";
 
 
@@ -12,6 +13,7 @@ import config from "./config";
         MongooseModule.forRoot(config.mongoUri),
         UserModule,
         AdminModule,
+        MatchModule,
     ],
 })
 
