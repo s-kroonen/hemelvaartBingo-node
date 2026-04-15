@@ -7,15 +7,14 @@ services:
       dockerfile: backend/Dockerfile
     environment:
       NODE_ENV: ${NODE_ENV:-production}
-      # example: DB_URI injected from secrets in Portainer
       MONGO_URI: ${MONGO_URI:-mongodb://${MONGO_INITDB_ROOT_USERNAME:-root}:${MONGO_INITDB_ROOT_PASSWORD:-mongo01}@mongo:${MONGO_PORT:-27017}/${MONGO_INITDB_DATABASE:-testdb}}
       FRONTEND_URL: ${FRONTEND_URL}
+      FIREBASE_SERVICE_ACCOUNT_B64: ${FIREBASE_SERVICE_ACCOUNT_B64}
+      PREFIX: ${PREFIX}
     ports:
       - "${BACKEND_PORT:-3000}:3000"
     depends_on:
       - mongo
-    volumes:
-      - ./backend/firebase-service-account.json:/app/firebase-service-account.json
 
   frontend:
     build:
@@ -28,6 +27,8 @@ services:
       NODE_ENV: ${NODE_ENV:-production}
     ports:
       - "${FRONTEND_PORT:-5173}:80"
+    depends_on:
+      - backend
 
   mongo:
     image: mongo:4
