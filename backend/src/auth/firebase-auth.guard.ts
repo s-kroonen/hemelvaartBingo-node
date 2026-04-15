@@ -5,9 +5,7 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import * as admin from 'firebase-admin';
-
-// firebase-auth.guard.ts
-import { UserRepository } from '../users/user.repository';
+import {UserRepository} from "../users/user.repository";
 
 @Injectable()
 export class FirebaseAuthGuard implements CanActivate {
@@ -17,21 +15,32 @@ export class FirebaseAuthGuard implements CanActivate {
     const request = context.switchToHttp().getRequest();
     const authHeader = request.headers.authorization;
 
-    if (!authHeader) throw new UnauthorizedException();
+    // Check for authorization header
+    if (!authHeader) throw new UnauthorizedException('Missing Authorization Header');
 
+    // Extract token from header
     const token = authHeader.split(' ')[1];
+    if (!token) throw new UnauthorizedException('Invalid Token Format');
 
-    const decoded = await admin.auth().verifyIdToken(token);
-    if(!decoded) throw new UnauthorizedException(decoded, 'Not authorized');
-    if(!decoded.email) throw new UnauthorizedException(decoded.email, 'Invalid email address');
+    try {
+      // Verify the ID token
+      const decoded = await admin.auth().verifyIdToken(token);
+      request.user = { ...decoded };
 
-    const user = await this.userRepo.findByEmail(decoded.email);
+      // Check for email in decoded token
+      if (!decoded.email) throw new UnauthorizedException('Invalid Email Address');
 
-    request.user = {
-      ...decoded,
-      dbUser: user,
-      roles: user?.roles || ['user'],
-    };
+      // Fetch user from repository
+      const user = await this.userRepo.findByEmail(decoded.email);
+      request.user = {
+        ...request.user,
+        dbUser: user,
+        roles: user?.roles || ['user'],
+      };
+
+    } catch (error) {
+      throw new UnauthorizedException(error, 'Not authorized');
+    }
 
     return true;
   }

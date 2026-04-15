@@ -1,7 +1,7 @@
 import api from "./client";
 
 export const getMyMatches = async () => {
-    const res = await api.get("/users/me");
+    const res = await api.get("/matches/my");
     return res.data.matches;
 };
 
