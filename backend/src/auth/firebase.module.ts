@@ -1,9 +1,17 @@
-import { Module, Global } from '@nestjs/common';
+// auth/auth.module.ts
+import { Module } from '@nestjs/common';
+import { PassportModule } from '@nestjs/passport';
+import { UserModule } from '../users/user.module';
+import { FirebaseStrategy } from './firebase.strategy';
+import { FirebaseAuthGuard } from './firebase-auth.guard';
 import { FirebaseProvider } from './firebase.provider';
 
-@Global() // 👈 makes it available everywhere
 @Module({
-    providers: [FirebaseProvider],
-    exports: [FirebaseProvider],
+    imports: [
+        PassportModule.register({ defaultStrategy: 'firebase' }),
+        UserModule, // Needed for UserService
+    ],
+    providers: [FirebaseProvider, FirebaseStrategy, FirebaseAuthGuard],
+    exports: [FirebaseAuthGuard], // Export the guard so controllers can use it
 })
 export class FirebaseModule {}

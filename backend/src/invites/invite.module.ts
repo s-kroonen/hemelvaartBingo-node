@@ -11,6 +11,6 @@ import { InviteRepository } from './invite.repository';
         ]),
     ],
     providers: [InviteRepository],
-    exports: [InviteRepository], // 👈 IMPORTANT
+    exports: [InviteRepository],
 })
 export class InviteModule {}

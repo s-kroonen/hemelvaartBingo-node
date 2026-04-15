@@ -1,24 +1,21 @@
 import {Module} from "@nestjs/common";
-import {MongooseModule} from "@nestjs/mongoose";
-import {Match, MatchSchema} from "../matches/match.schema";
 import {AdminService} from "./admin.service";
-import {MatchRepository} from "../matches/match.repository";
 import {AdminController} from "./admin.controller";
 
-import { UserModule } from '../users/user.module';
+import {UserModule} from '../users/user.module';
 import {InviteModule} from "../invites/invite.module";
+import {MatchModule} from "../matches/match.module";
 
 @Module({
     imports: [
-        MongooseModule.forFeature([
-            { name: Match.name, schema: MatchSchema },
-        ]),
         UserModule,
         InviteModule,
+        MatchModule,
     ],
     controllers: [AdminController],
-    providers: [AdminService, MatchRepository],
+    providers: [AdminService],
 })
 
 
-export class AdminModule {}
+export class AdminModule {
+}

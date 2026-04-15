@@ -2,7 +2,7 @@ import { Controller, Get, Req, UseGuards } from '@nestjs/common';
 import { FirebaseAuthGuard } from '../auth/firebase-auth.guard';
 import { MatchService } from './match.service';
 import { UserService } from '../users/user.service';
-import {Types} from "mongoose";
+import { Types } from "mongoose";
 
 @Controller('matches')
 export class MatchController {

@@ -26,6 +26,15 @@ export class MatchRepository {
     delete(id: string) {
         return this.model.findByIdAndDelete(id);
     }
+    async addMaster(matchId: string, userId: Types.ObjectId) {
+        return this.model.findByIdAndUpdate(
+            matchId,
+            {
+                $addToSet: { masters: userId },
+            },
+            { new: true },
+        ).exec();
+    }
     async findByUser(userId: Types.ObjectId): Promise<Match[]> {
         return this.model.find({
             players: userId,

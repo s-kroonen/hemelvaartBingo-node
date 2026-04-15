@@ -24,4 +24,15 @@ export class UserRepository {
   findByIdAndUpdate(userId: string, updated: { currentMatchID: any }, options: { new: boolean }) {
     return this.userModel.findByIdAndUpdate(userId, updated, options);
   }
+  async findAll() {
+    return this.userModel.find();
+  }
+
+  async update(id: string, data: any) {
+    return this.userModel.findByIdAndUpdate(
+        id,
+        data,
+        { new: true },
+    );
+  }
 }

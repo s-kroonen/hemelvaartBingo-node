@@ -29,4 +29,13 @@ export class UserService {
 
     return user;
   }
+  async findAllUsers() {
+    return this.repo.findAll();
+  }
+
+  async addRole(userId: string, role: string) {
+    return this.repo.update(userId, {
+      $addToSet: { roles: role },
+    });
+  }
 }

@@ -1,54 +1,46 @@
-import {MatchRepository} from "../matches/match.repository";
-import {UserRepository} from "../users/user.repository";
-import {Injectable, NotFoundException} from "@nestjs/common";
-import {Types} from "mongoose";
+import { Injectable, NotFoundException } from "@nestjs/common";
+import { Types } from "mongoose";
+
+import { MatchService } from "../matches/match.service";
+import { UserService } from "../users/user.service";
 
 @Injectable()
 export class AdminService {
     constructor(
-        private matchRepo: MatchRepository,
-        private userRepo: UserRepository,
+        private readonly matchService: MatchService,
+        private readonly userService: UserService,
     ) {}
 
-    async createMatch(data) {
-        return this.matchRepo.create(data);
+    async createMatch(data: any) {
+        return this.matchService.createMatch(data);
     }
 
     async assignMaster(matchId: string, userId: string) {
-        const match = await this.matchRepo.findById(matchId);
+        const match = await this.matchService.findById(matchId);
 
         if (!match) {
             throw new NotFoundException(`Match with id ${matchId} not found`);
         }
 
-        const userObjectId = new Types.ObjectId(userId);
-
-        const alreadyMaster = match.masters.some(
-            (id) => id.toString() === userObjectId.toString(),
+        return this.matchService.addMaster(
+            matchId,
+            new Types.ObjectId(userId),
         );
-
-        if (!alreadyMaster) {
-            match.masters.push(userObjectId);
-        }
-
-        return match.save();
     }
 
     async getAllMatches() {
-        return this.matchRepo.findAll();
+        return this.matchService.findAll();
     }
 
-    async updateMatch(matchId: string, data) {
-        return this.matchRepo.update(matchId, data);
+    async updateMatch(matchId: string, data: any) {
+        return this.matchService.updateMatch(matchId, data);
     }
 
     async getAllUsers() {
-        return this.userRepo['userModel'].find(); // quick debug access
+        return this.userService.findAllUsers();
     }
 
     async promoteToAdmin(userId: string) {
-        return this.userRepo['userModel'].findByIdAndUpdate(userId, {
-            $addToSet: { roles: 'admin' },
-        });
+        return this.userService.addRole(userId, "admin");
     }
 }
