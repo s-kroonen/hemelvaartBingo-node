@@ -3,9 +3,9 @@ import {
     signInWithEmailAndPassword,
     createUserWithEmailAndPassword,
 } from "firebase/auth";
-import { auth } from "../../firebase/config.ts";
-import { useAuthStore } from "../../store/authStore.ts";
-import api from "../../api/client.ts";
+import { auth } from "../firebase/config.ts";
+import { useAuthStore } from "../store/authStore.ts";
+import api from "../api/client.ts";
 import { useNavigate } from "react-router-dom";
 
 export default function LoginPage() {

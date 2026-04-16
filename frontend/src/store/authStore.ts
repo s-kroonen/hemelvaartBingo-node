@@ -1,4 +1,4 @@
-import {create} from "zustand";
+import { create } from 'zustand';
 
 interface User {
     id: string;
@@ -6,14 +6,26 @@ interface User {
     roles: string[];
 }
 
-interface AuthState {
+interface AuthStore {
     user: User | null;
-    setUser: (user: User) => void;
-    clearUser: () => void;
+    isAuthenticated: boolean;
+    setUser: (user: User | null) => void;
+    logout: () => void;
+    hasRole: (role: string) => boolean;
+    clearUser: () => void,
 }
 
-export const useAuthStore = create<AuthState>((set) => ({
+export const useAuthStore = create<AuthStore>((set, get) => ({
     user: null,
-    setUser: (user) => set({user}),
+    isAuthenticated: false,
+    setUser: (user) => set({ user, isAuthenticated: !!user }),
+    logout: () => {
+        localStorage.removeItem('authToken');
+        set({ user: null, isAuthenticated: false });
+    },
+    hasRole: (role) => {
+        const { user } = get();
+        return user?.roles.includes(role) || false;
+    },
     clearUser: () => set({user: null}),
 }));

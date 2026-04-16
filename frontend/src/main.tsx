@@ -1,18 +1,18 @@
-import { StrictMode } from "react";
-import { createRoot } from "react-dom/client";
-import "./index.css";
+import React from "react";
+import ReactDOM from "react-dom/client";
+import App from "./App"; // The file you just showed me
+import "./styles/index.css";    // Your Tailwind/CSS imports
 
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-const queryClient = new QueryClient();
-import AuthProvider from "./firebase/AuthProvider";
-import AppRouter from "./routes/AppRouter.tsx";
+// 1. Grab the 'root' div from your index.html
+const rootElement = document.getElementById("root");
 
-createRoot(document.getElementById("root")!).render(
-    <StrictMode>
-        <QueryClientProvider client={queryClient}>
-            <AuthProvider>
-                <AppRouter />
-            </AuthProvider>
-        </QueryClientProvider>
-    </StrictMode>
+if (!rootElement) {
+    throw new Error("Target container 'root' not found. Check your index.html");
+}
+
+// 2. Inject the App into the DOM
+ReactDOM.createRoot(rootElement).render(
+    <React.StrictMode>
+        <App />
+    </React.StrictMode>
 );
