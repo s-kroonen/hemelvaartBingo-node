@@ -1,6 +1,12 @@
 {
   "name": "bingo-app",
   "private": true,
+  "overrides": {
+    "@tootallnate/once": "^3.0.1",
+    "ajv": "^8.17.1",
+    "picomatch": "^4.0.4",
+    "http-proxy-agent": "^7.0.0"
+  },
   "workspaces": [
     "backend",
     "frontend"
