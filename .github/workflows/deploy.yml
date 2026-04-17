@@ -2,7 +2,7 @@ name: CI → Security → Deploy
 
 on:
   push:
-    branches: [main, dev]
+    branches: [master]
   pull_request:
   workflow_dispatch:
 concurrency:
