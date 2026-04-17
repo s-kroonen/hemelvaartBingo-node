@@ -1,9 +1,10 @@
-import { create } from 'zustand';
+import {create} from 'zustand';
 
 interface User {
     id: string;
     email: string;
     roles: string[];
+    currentMatchId: string | null;
 }
 
 interface AuthStore {
@@ -12,20 +13,25 @@ interface AuthStore {
     setUser: (user: User | null) => void;
     logout: () => void;
     hasRole: (role: string) => boolean;
-    clearUser: () => void,
+    clearUser: () => void;
 }
 
 export const useAuthStore = create<AuthStore>((set, get) => ({
     user: null,
     isAuthenticated: false,
-    setUser: (user) => set({ user, isAuthenticated: !!user }),
+    setUser: (user) => {
+        set({user, isAuthenticated: !!user})
+    },
     logout: () => {
         localStorage.removeItem('authToken');
-        set({ user: null, isAuthenticated: false });
+        set({user: null, isAuthenticated: false});
     },
     hasRole: (role) => {
-        const { user } = get();
-        return user?.roles?.includes(role) || false;
+        const {user} = get();
+        return user?.roles.includes(role) || false;
     },
-    clearUser: () => set({user: null}),
+    clearUser: () => {
+        localStorage.removeItem('authToken');
+        set({user: null, isAuthenticated: false});
+    },
 }));

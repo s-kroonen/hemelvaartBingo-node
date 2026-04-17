@@ -4,12 +4,12 @@ import {
     createUserWithEmailAndPassword,
 } from "firebase/auth";
 import { auth } from "../firebase/config";
-import { useAuthStore } from "../store/authStore";
-import api from "../api/client";
+// import { useAuthStore } from "../store/authStore";
+// import api from "../api/client";
 import { useNavigate } from "react-router";
 
 export default function LoginPage() {
-    const setUser = useAuthStore((s) => s.setUser);
+    // const setUser = useAuthStore((s) => s.setUser);
     const navigate = useNavigate();
 
     const [isRegister, setIsRegister] = useState(false);
@@ -69,9 +69,9 @@ export default function LoginPage() {
             localStorage.setItem("authToken", token);
 
             // 🔑 Sync with backend (token auto added via axios interceptor)
-            const res = await api.get("/users/me");
+            // const res = await api.get("/users/me");
 
-            setUser(res.data);
+            // setUser(res.data);
 
             navigate("/");
         } catch (err: any) {

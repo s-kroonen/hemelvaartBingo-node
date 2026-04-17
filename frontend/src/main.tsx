@@ -1,7 +1,8 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
 import App from "./App"; // The file you just showed me
-import "./styles/index.css";    // Your Tailwind/CSS imports
+import "./styles/index.css";
+import AuthProvider from "@/firebase/AuthProvider.tsx";    // Your Tailwind/CSS imports
 
 // 1. Grab the 'root' div from your index.html
 const rootElement = document.getElementById("root");
@@ -13,6 +14,8 @@ if (!rootElement) {
 // 2. Inject the App into the DOM
 ReactDOM.createRoot(rootElement).render(
     <React.StrictMode>
-        <App />
+        <AuthProvider>
+            <App/>
+        </AuthProvider>
     </React.StrictMode>
 );
