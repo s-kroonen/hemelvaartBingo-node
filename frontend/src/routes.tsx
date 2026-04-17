@@ -1,23 +1,40 @@
-import { createBrowserRouter, Navigate } from "react-router";
+import {createBrowserRouter, Navigate} from "react-router";
 import Root from "./components/Root";
 import LeaderboardPage from "./pages/LeaderboardPage";
 import AdminDashboard from "./pages/AdminDashboard";
 import BingoMasterPage from "./pages/BingoMasterPage";
-import { useAuthStore } from "./store/authStore";
+import {useAuthStore} from "./store/authStore";
+import LoginPage from "@/pages/LoginPage.tsx";
 
 // Protected Route Component
-function ProtectedRoute({ children, requiredRole }: { children: React.ReactNode; requiredRole: string }) {
-    const hasRole = useAuthStore((state) => state.hasRole);
+function ProtectedRoute({
+                            children,
+                            requiredRole
+                        }: {
+    children: React.ReactNode;
+    requiredRole?: string;
+}) {
+    const {isAuthenticated, hasRole} = useAuthStore();
 
-    if (!hasRole(requiredRole)) {
-        return <Navigate to="/" replace />;
+    // Redirect to login if not authenticated
+    if (!isAuthenticated) {
+        return <Navigate to="/login" replace/>;
+    }
+
+    // Check role if required
+    if (requiredRole && !hasRole(requiredRole)) {
+        return <Navigate to="/" replace/>;
     }
 
     return <>{children}</>;
 }
 
+
 export const router = createBrowserRouter([
     {
+        path: "/login",
+        Component: LoginPage,
+    }, {
         path: "/",
         Component: Root,
         children: [
@@ -29,7 +46,7 @@ export const router = createBrowserRouter([
                 path: "admin",
                 element: (
                     <ProtectedRoute requiredRole="admin">
-                        <AdminDashboard />
+                        <AdminDashboard/>
                     </ProtectedRoute>
                 ),
             },
@@ -37,7 +54,7 @@ export const router = createBrowserRouter([
                 path: "master",
                 element: (
                     <ProtectedRoute requiredRole="master">
-                        <BingoMasterPage />
+                        <BingoMasterPage/>
                     </ProtectedRoute>
                 ),
             },

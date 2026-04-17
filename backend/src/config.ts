@@ -11,4 +11,5 @@ export default {
     jwtSecret: process.env.JWT_SECRET || "secret",
     frontendUrl: process.env.FRONTEND_URL,
     prefix: process.env.PREFIX || "",
+    defaultEmail: process.env.DEFAULT_ADMIN_EMAIL,
 };

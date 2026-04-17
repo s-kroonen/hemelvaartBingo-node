@@ -44,4 +44,13 @@ export class MatchService {
 
         return this.repo.addMaster(matchId, userId);
     }
+
+    async delete(matchId: string) {
+        return this.repo.delete(matchId);
+    }
+
+    async getMatchesByMaster(masterId: string) {
+        const objectId = new Types.ObjectId(masterId);
+        return this.repo.findByMaster(objectId);
+    }
 }

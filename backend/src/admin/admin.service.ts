@@ -3,6 +3,7 @@ import { Types } from "mongoose";
 
 import { MatchService } from "../matches/match.service";
 import { UserService } from "../users/user.service";
+import {Role} from "../users/user.schema";
 
 @Injectable()
 export class AdminService {
@@ -41,6 +42,18 @@ export class AdminService {
     }
 
     async promoteToAdmin(userId: string) {
-        return this.userService.addRole(userId, "admin");
+        return this.userService.addRole(userId, Role.ADMIN);
+    }
+
+    async addRole(userId: string, role: Role) {
+        return this.userService.addRole(userId, role);
+    }
+
+    async deleteMatch(matchId: string) {
+        return this.matchService.delete(matchId);
+    }
+
+    async removeRole(userId: string, role: Role) {
+        return this.userService.removeRole(userId, role);
     }
 }

@@ -5,19 +5,27 @@ import {
     Body,
     Param,
     Patch,
-    UseGuards,
+    UseGuards, Delete, Put,
 } from '@nestjs/common';
-import { FirebaseAuthGuard } from '../auth/firebase-auth.guard';
-import { RolesGuard } from '../auth/roles.guard';
-import { Roles } from '../auth/roles.decorator';
-import { AdminService } from './admin.service';
+import {FirebaseAuthGuard} from '../auth/firebase-auth.guard';
+import {RolesGuard} from '../auth/roles.guard';
+import {Roles} from '../auth/roles.decorator';
+import {AdminService} from './admin.service';
 import {InviteRepository} from "../invites/invite.repository";
+import { IsEnum } from 'class-validator';
+import {Role} from "../users/user.schema";
+
+export class UpdateRoleDto {
+    @IsEnum(Role)
+    role: Role;
+}
 
 @Controller('admin')
 @UseGuards(FirebaseAuthGuard, RolesGuard)
-@Roles('admin')
+@Roles(Role.ADMIN)
 export class AdminController {
-    constructor(private service: AdminService, private inviteRepo: InviteRepository) {}
+    constructor(private service: AdminService, private inviteRepo: InviteRepository) {
+    }
 
     @Post('invites')
     createInvite(@Body() body) {
@@ -59,5 +67,26 @@ export class AdminController {
     @Post('users/:id/promote')
     promote(@Param('id') id: string) {
         return this.service.promoteToAdmin(id);
+    }
+
+    @Put('users/:userId/role')
+    updateRole(
+        @Param('userId') userId: string,
+        @Body() body: UpdateRoleDto,
+    ) {
+        return this.service.addRole(userId, body.role);
+    }
+
+    @Put('users/:userId/role/remove')
+    removeRole(
+        @Param('userId') userId: string,
+        @Body() body: UpdateRoleDto,
+    ) {
+        return this.service.removeRole(userId, body.role);
+    }
+
+    @Delete('matches/:matchId')
+    deleteMatch(@Param('matchId') matchId: string) {
+        return this.service.deleteMatch(matchId);
     }
 }

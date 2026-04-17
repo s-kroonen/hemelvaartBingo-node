@@ -1,11 +1,12 @@
 // auth/auth.module.ts
-import { Module } from '@nestjs/common';
+import {Global, Module} from '@nestjs/common';
 import { PassportModule } from '@nestjs/passport';
 import { UserModule } from '../users/user.module';
 import { FirebaseStrategy } from './firebase.strategy';
 import { FirebaseAuthGuard } from './firebase-auth.guard';
 import { FirebaseProvider } from './firebase.provider';
 
+@Global()
 @Module({
     imports: [
         PassportModule.register({ defaultStrategy: 'firebase' }),

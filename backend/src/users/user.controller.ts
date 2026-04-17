@@ -4,6 +4,7 @@ import { UserService } from './user.service';
 
 @Controller('users')
 export class UserController {
+
   constructor(private service: UserService) {}
 
   @UseGuards(FirebaseAuthGuard)

@@ -40,4 +40,9 @@ export class MatchRepository {
             players: userId,
         });
     }
+    async findByMaster(masterId: Types.ObjectId): Promise<Match[]> {
+        return this.model.find({
+            masters: masterId,
+        });
+    }
 }

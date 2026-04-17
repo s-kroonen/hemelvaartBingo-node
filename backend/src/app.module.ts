@@ -5,6 +5,7 @@ import {AdminModule} from "./admin/admin.module";
 import {FirebaseModule} from "./auth/firebase.module";
 import {MatchModule} from "./matches/match.module";
 import config from "./config";
+import {MasterModule} from "./master/master.module";
 
 
 @Module({
@@ -12,8 +13,9 @@ import config from "./config";
         FirebaseModule,
         MongooseModule.forRoot(config.mongoUri),
         UserModule,
-        AdminModule,
         MatchModule,
+        AdminModule,
+        MasterModule,
     ],
 })
 

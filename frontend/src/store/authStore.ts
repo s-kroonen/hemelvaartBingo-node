@@ -25,7 +25,7 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
     },
     hasRole: (role) => {
         const { user } = get();
-        return user?.roles.includes(role) || false;
+        return user?.roles?.includes(role) || false;
     },
     clearUser: () => set({user: null}),
 }));

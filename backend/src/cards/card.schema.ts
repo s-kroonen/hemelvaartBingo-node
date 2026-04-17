@@ -1,5 +1,6 @@
 import { Types } from 'mongoose';
-import { Prop, Schema } from '@nestjs/mongoose';
+import {Prop, Schema, SchemaFactory} from '@nestjs/mongoose';
+import {Match} from "../matches/match.schema";
 
 @Schema()
 export class Card {
@@ -15,3 +16,5 @@ export class Card {
   @Prop({ type: [[Boolean]] })
   marked: boolean[][];
 }
+
+export const CardSchema = SchemaFactory.createForClass(Card);

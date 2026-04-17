@@ -11,22 +11,31 @@ export default function AuthProvider({ children }: any) {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
+        // If Firebase is not configured, skip auth and continue
+        if (!auth) {
+            console.warn("Firebase not available - skipping authentication");
+            setLoading(false);
+            return;
+        }
+
         let timeout = setTimeout(() => {
             console.warn("Auth timeout → continuing without Firebase");
             setLoading(false);
         }, 3000); // fallback
-        if (!auth) {
-            console.warn("Skipping auth (no Firebase)");
-            setLoading(false);
-            return;
-        }
+
         try {
             const unsub = onAuthStateChanged(auth, async (firebaseUser) => {
                 try {
                     if (firebaseUser) {
+                        // Get ID token and store it
+                        const token = await firebaseUser.getIdToken();
+                        localStorage.setItem("authToken", token);
+
+                        // Sync with backend to get user data (including currentMatchId)
                         const res = await api.get("/users/me");
                         setUser(res.data);
                     } else {
+                        // User logged out
                         clearUser();
                     }
                 } catch (err) {
@@ -47,12 +56,12 @@ export default function AuthProvider({ children }: any) {
             clearTimeout(timeout);
             setLoading(false);
         }
-    }, []);
+    }, [setUser, clearUser]);
 
     if (loading) {
         return (
             <div className="h-screen flex items-center justify-center">
-                Starting app...
+                <div className="text-lg">Starting app...</div>
             </div>
         );
     }

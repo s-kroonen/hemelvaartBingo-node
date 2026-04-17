@@ -3,10 +3,10 @@ import {
     signInWithEmailAndPassword,
     createUserWithEmailAndPassword,
 } from "firebase/auth";
-import { auth } from "../firebase/config.ts";
-import { useAuthStore } from "../store/authStore.ts";
-import api from "../api/client.ts";
-import { useNavigate } from "react-router-dom";
+import { auth } from "../firebase/config";
+import { useAuthStore } from "../store/authStore";
+import api from "../api/client";
+import { useNavigate } from "react-router";
 
 export default function LoginPage() {
     const setUser = useAuthStore((s) => s.setUser);
@@ -19,6 +19,9 @@ export default function LoginPage() {
 
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
+
+    // Check if Firebase is available
+    const isFirebaseAvailable = !!auth;
 
     // 🧼 Basic validation
     const validate = () => {
@@ -37,15 +40,33 @@ export default function LoginPage() {
             return;
         }
 
+        if (!isFirebaseAvailable) {
+            setError("Firebase is not configured. Please set up environment variables.");
+            return;
+        }
+
         try {
             setLoading(true);
 
             // 🔐 Firebase auth
+            let userCredential;
             if (isRegister) {
-                await createUserWithEmailAndPassword(auth, email, password);
+                userCredential = await createUserWithEmailAndPassword(
+                    auth!,
+                    email,
+                    password
+                );
             } else {
-                await signInWithEmailAndPassword(auth, email, password);
+                userCredential = await signInWithEmailAndPassword(
+                    auth!,
+                    email,
+                    password
+                );
             }
+
+            // Get and store the token
+            const token = await userCredential.user.getIdToken();
+            localStorage.setItem("authToken", token);
 
             // 🔑 Sync with backend (token auto added via axios interceptor)
             const res = await api.get("/users/me");
@@ -61,6 +82,10 @@ export default function LoginPage() {
                 setError("Email already in use");
             } else if (err.code === "auth/invalid-credential") {
                 setError("Invalid email or password");
+            } else if (err.code === "auth/wrong-password") {
+                setError("Invalid email or password");
+            } else if (err.code === "auth/user-not-found") {
+                setError("User not found");
             } else {
                 setError("Something went wrong");
             }
@@ -76,6 +101,12 @@ export default function LoginPage() {
                     {isRegister ? "Register" : "Login"}
                 </h1>
 
+                {!isFirebaseAvailable && (
+                    <div className="bg-yellow-50 border border-yellow-200 text-yellow-800 p-3 rounded text-sm">
+                        ⚠️ Firebase not configured. Add environment variables to enable authentication.
+                    </div>
+                )}
+
                 {/* Email */}
                 <input
                     type="email"
@@ -83,6 +114,7 @@ export default function LoginPage() {
                     className="w-full border p-2 rounded"
                     value={email}
                     onChange={(e) => setEmail(e.target.value.trim())}
+                    disabled={!isFirebaseAvailable}
                 />
 
                 {/* Password */}
@@ -92,18 +124,17 @@ export default function LoginPage() {
                     className="w-full border p-2 rounded"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
+                    disabled={!isFirebaseAvailable}
                 />
 
                 {/* Error */}
-                {error && (
-                    <div className="text-red-500 text-sm">{error}</div>
-                )}
+                {error && <div className="text-red-500 text-sm">{error}</div>}
 
                 {/* Action button */}
                 <button
                     onClick={handleAuth}
-                    disabled={loading}
-                    className="w-full bg-blue-500 text-white p-2 rounded disabled:opacity-50"
+                    disabled={loading || !isFirebaseAvailable}
+                    className="w-full bg-blue-500 text-white p-2 rounded disabled:opacity-50 hover:bg-blue-600 transition"
                 >
                     {loading
                         ? "Loading..."
@@ -113,29 +144,31 @@ export default function LoginPage() {
                 </button>
 
                 {/* Toggle */}
-                <div className="text-center text-sm">
-                    {isRegister ? (
-                        <>
-                            Already have an account?{" "}
-                            <button
-                                className="text-blue-500"
-                                onClick={() => setIsRegister(false)}
-                            >
-                                Login
-                            </button>
-                        </>
-                    ) : (
-                        <>
-                            No account?{" "}
-                            <button
-                                className="text-blue-500"
-                                onClick={() => setIsRegister(true)}
-                            >
-                                Register
-                            </button>
-                        </>
-                    )}
-                </div>
+                {isFirebaseAvailable && (
+                    <div className="text-center text-sm">
+                        {isRegister ? (
+                            <>
+                                Already have an account?{" "}
+                                <button
+                                    className="text-blue-500 hover:underline"
+                                    onClick={() => setIsRegister(false)}
+                                >
+                                    Login
+                                </button>
+                            </>
+                        ) : (
+                            <>
+                                No account?{" "}
+                                <button
+                                    className="text-blue-500 hover:underline"
+                                    onClick={() => setIsRegister(true)}
+                                >
+                                    Register
+                                </button>
+                            </>
+                        )}
+                    </div>
+                )}
             </div>
         </div>
     );
