@@ -1,14 +1,29 @@
-FROM node:20
-
+# Stage 1: Build
+FROM node:20-alpine AS builder
 WORKDIR /app
 
 COPY package*.json ./
+COPY backend/package.json ./backend/
+COPY frontend/package.json ./frontend/
+
+RUN npm ci -w backend
+
 COPY backend ./backend
+RUN npm run build -w backend
 
-RUN npm install
+# Stage 2: Production
+FROM node:20-alpine
+WORKDIR /app
 
-WORKDIR /app/backend
+# Only copy what is needed to run the app
+COPY package*.json ./
+COPY backend/package.json ./backend/
 
-RUN npm run build
+# Install ONLY production dependencies
+RUN npm ci -w backend --omit=dev
 
+# Copy build from previous stage
+COPY --from=builder /app/backend/dist ./dist
+
+EXPOSE 3000
 CMD ["node", "dist/main.js"]

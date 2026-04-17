@@ -1,31 +1,32 @@
-# Stage 1: Build React app
-FROM node:20 AS builder
+# Stage 1: Build
+FROM node:20-alpine AS builder
 
+# Install build essentials if any native modules exist
+RUN apk add --no-cache libc6-compat
 WORKDIR /app
 
-# Build-time argument
-ARG VITE_API_URL
+# 1. Copy workspace manifests first to cache the 'npm install' layer
+COPY package*.json ./
+COPY frontend/package.json ./frontend/
+COPY backend/package.json ./backend/
 
-# Make it available for Vite
+# 2. Install dependencies (using ci for faster/cleaner builds)
+RUN npm ci -w frontend
+
+# 3. Copy source and build
+COPY frontend ./frontend
+ARG VITE_API_URL
 ENV VITE_API_URL=$VITE_API_URL
 
-COPY package*.json ./
-COPY frontend ./frontend
-
-RUN npm install
-
 WORKDIR /app/frontend
-RUN echo "VITE_API_URL=$VITE_API_URL" > .env.production \
-    && npm run build
+RUN npm run build
 
-# Stage 2: Serve with Nginx
+# Stage 2: Production (Tiny image)
 FROM nginx:alpine
 
+# Copy the custom config we created above
+COPY frontend/nginx.conf /etc/nginx/conf.d/default.conf
 COPY --from=builder /app/frontend/dist /usr/share/nginx/html
 
-# Optional: custom nginx config
-# COPY frontend/nginx.conf /etc/nginx/conf.d/default.conf
-
 EXPOSE 80
-
 CMD ["nginx", "-g", "daemon off;"]
