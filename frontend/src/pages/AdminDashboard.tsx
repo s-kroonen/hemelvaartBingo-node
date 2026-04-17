@@ -1,116 +1,206 @@
-import { useQuery } from "@tanstack/react-query";
-import { getUsers, getMatches, getInvites } from "../api/admin.ts";
-import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card";
-import { Badge } from "../components/ui/badge";
-import { Users, Calendar, Mail } from "lucide-react";
+import {useQuery} from "@tanstack/react-query";
+import {getUsers, getMatches, getInvites} from "../api/admin";
+import {Card, CardContent, CardHeader, CardTitle} from "../components/ui/card";
+import {Badge} from "../components/ui/badge";
+import {Button} from "../components/ui/button";
+import {Tabs, TabsContent, TabsList, TabsTrigger} from "../components/ui/tabs";
+import {Users, Calendar, Mail, Plus, Edit} from "lucide-react";
+import {useNavigate} from "react-router";
+import type {User, Match, Invite} from "../types";
 
 export default function AdminDashboard() {
-    const users = useQuery({ queryKey: ["users"], queryFn: getUsers });
-    const matches = useQuery({ queryKey: ["matches"], queryFn: getMatches });
-    const invites = useQuery({ queryKey: ["invites"], queryFn: getInvites });
+    const navigate = useNavigate();
+    const users = useQuery({queryKey: ["users"], queryFn: getUsers});
+    const matches = useQuery({queryKey: ["matches"], queryFn: getMatches});
+    const invites = useQuery({queryKey: ["invites"], queryFn: getInvites});
 
     return (
         <div className="container mx-auto p-6 space-y-6">
-            <h1 className="text-3xl font-bold mb-6">Admin Dashboard</h1>
+            <div className="flex items-center justify-between mb-6">
+                <h1 className="text-3xl font-bold">Admin Dashboard</h1>
+            </div>
 
-            {/* Users */}
-            <Card>
-                <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                        <Users className="w-5 h-5" />
+            <Tabs defaultValue="users" className="w-full">
+                <TabsList className="grid w-full grid-cols-3">
+                    <TabsTrigger value="users">
+                        <Users className="w-4 h-4 mr-2"/>
                         Users
-                    </CardTitle>
-                </CardHeader>
-                <CardContent>
-                    {users.isLoading && <div className="text-gray-500">Loading users...</div>}
-                    {users.error && <div className="text-red-500">Failed to load users</div>}
-                    {users.data && (
-                        <div className="space-y-2">
-                            {users.data.map((u: any) => (
-                                <div key={u.id} className="border p-4 rounded-lg flex items-center justify-between">
-                                    <div>
-                                        <div className="font-medium">{u.email}</div>
-                                        {u.name && <div className="text-sm text-gray-500">{u.name}</div>}
-                                    </div>
-                                    <div className="flex gap-2">
-                                        {u.roles.map((role: string) => (
-                                            <Badge key={role} variant="secondary">
-                                                {role}
-                                            </Badge>
-                                        ))}
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
-                    )}
-                </CardContent>
-            </Card>
-
-            {/* Matches */}
-            <Card>
-                <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                        <Calendar className="w-5 h-5" />
+                    </TabsTrigger>
+                    <TabsTrigger value="matches">
+                        <Calendar className="w-4 h-4 mr-2"/>
                         Matches
-                    </CardTitle>
-                </CardHeader>
-                <CardContent>
-                    {matches.isLoading && <div className="text-gray-500">Loading matches...</div>}
-                    {matches.error && <div className="text-red-500">Failed to load matches</div>}
-                    {matches.data && (
-                        <div className="space-y-2">
-                            {matches.data.map((m: any) => (
-                                <div key={m.id} className="border p-4 rounded-lg">
-                                    <div className="font-medium">{m.name}</div>
-                                    {m.startDate && m.endDate && (
-                                        <div className="text-sm text-gray-500">
-                                            {new Date(m.startDate).toLocaleDateString()} - {new Date(m.endDate).toLocaleDateString()}
-                                        </div>
-                                    )}
-                                    {m.master && (
-                                        <div className="text-sm text-gray-600 mt-1">
-                                            Master: {m.master.email}
-                                        </div>
-                                    )}
-                                </div>
-                            ))}
-                        </div>
-                    )}
-                </CardContent>
-            </Card>
-
-            {/* Invites */}
-            <Card>
-                <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                        <Mail className="w-5 h-5" />
+                    </TabsTrigger>
+                    <TabsTrigger value="invites">
+                        <Mail className="w-4 h-4 mr-2"/>
                         Invites
-                    </CardTitle>
-                </CardHeader>
-                <CardContent>
-                    {invites.isLoading && <div className="text-gray-500">Loading invites...</div>}
-                    {invites.error && <div className="text-red-500">Failed to load invites</div>}
-                    {invites.data && (
-                        <div className="space-y-2">
-                            {invites.data.map((i: any) => (
-                                <div key={i.id} className="border p-4 rounded-lg">
-                                    <div className="flex items-center justify-between">
-                                        <div>
-                                            <div className="font-medium">{i.email}</div>
-                                            <div className="text-sm text-gray-500">
-                                                Token: <code className="bg-gray-100 px-2 py-1 rounded">{i.token}</code>
+                    </TabsTrigger>
+                </TabsList>
+
+                {/* Users Tab */}
+                <TabsContent value="users" className="space-y-4">
+                    <div className="flex justify-end">
+                        <Button onClick={() => navigate("/admin/users/new")}>
+                            <Plus className="w-4 h-4 mr-2"/>
+                            Create User
+                        </Button>
+                    </div>
+
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>All Users</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                            {users.isLoading && <div className="text-gray-500">Loading users...</div>}
+                            {users.error && <div className="text-red-500">Failed to load users</div>}
+                            {users.data && (
+                                <div className="space-y-2">
+                                    {users.data.map((u: User) => (
+                                        <div
+                                            key={u.id}
+                                            className="border p-4 rounded-lg flex items-center justify-between hover:bg-gray-50 transition cursor-pointer"
+                                            onClick={() => navigate(`/admin/users/${u.id}`)}
+                                        >
+                                            <div>
+                                                <div className="font-medium">{u.email}</div>
+                                                {u.name && <div className="text-sm text-gray-500">{u.name}</div>}
+                                            </div>
+                                            <div className="flex items-center gap-2">
+                                                <div className="flex gap-1">
+                                                    {u.roles.map((role: string) => (
+                                                        <Badge key={role} variant="secondary">
+                                                            {role}
+                                                        </Badge>
+                                                    ))}
+                                                </div>
+                                                <Button
+                                                    variant="ghost"
+                                                    size="sm"
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        navigate(`/admin/users/${u.id}`);
+                                                    }}
+                                                >
+                                                    <Edit className="w-4 h-4"/>
+                                                </Button>
                                             </div>
                                         </div>
-                                        <div className="text-sm text-gray-600">
-                                            Match ID: {i.matchId}
-                                        </div>
-                                    </div>
+                                    ))}
                                 </div>
-                            ))}
-                        </div>
-                    )}
-                </CardContent>
-            </Card>
+                            )}
+                        </CardContent>
+                    </Card>
+                </TabsContent>
+
+                {/* Matches Tab */}
+                <TabsContent value="matches" className="space-y-4">
+                    <div className="flex justify-end">
+                        <Button onClick={() => navigate("/admin/matches/new")}>
+                            <Plus className="w-4 h-4 mr-2"/>
+                            Create Match
+                        </Button>
+                    </div>
+
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>All Matches</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                            {matches.isLoading && <div className="text-gray-500">Loading matches...</div>}
+                            {matches.error && <div className="text-red-500">Failed to load matches</div>}
+                            {matches.data && (
+                                <div className="space-y-2">
+                                    {matches.data.map((m: Match) => (
+                                        <div
+                                            key={m.id}
+                                            className="border p-4 rounded-lg hover:bg-gray-50 transition cursor-pointer flex items-center justify-between"
+                                            onClick={() => navigate(`/admin/matches/${m.id}`)}
+                                        >
+                                            <div>
+                                                <div className="font-medium">{m.name}</div>
+                                                {m.startDate && m.endDate && (
+                                                    <div className="text-sm text-gray-500">
+                                                        {new Date(m.startDate).toLocaleDateString()} -{" "}
+                                                        {new Date(m.endDate).toLocaleDateString()}
+                                                    </div>
+                                                )}
+                                                {m.master && (
+                                                    <div className="text-sm text-gray-600 mt-1">
+                                                        Master: {m.master.email}
+                                                    </div>
+                                                )}
+                                            </div>
+                                            <Button
+                                                variant="ghost"
+                                                size="sm"
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    navigate(`/admin/matches/${m.id}`);
+                                                }}
+                                            >
+                                                <Edit className="w-4 h-4"/>
+                                            </Button>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                        </CardContent>
+                    </Card>
+                </TabsContent>
+
+                {/* Invites Tab */}
+                <TabsContent value="invites" className="space-y-4">
+                    <div className="flex justify-end">
+                        <Button onClick={() => navigate("/admin/invites/new")}>
+                            <Plus className="w-4 h-4 mr-2"/>
+                            Create Invite
+                        </Button>
+                    </div>
+
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>All Invites</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                            {invites.isLoading && <div className="text-gray-500">Loading invites...</div>}
+                            {invites.error && <div className="text-red-500">Failed to load invites</div>}
+                            {invites.data && (
+                                <div className="space-y-2">
+                                    {invites.data.map((i: Invite) => (
+                                        <div
+                                            key={i.id}
+                                            className="border p-4 rounded-lg hover:bg-gray-50 transition cursor-pointer"
+                                            onClick={() => navigate(`/admin/invites/${i.id}`)}
+                                        >
+                                            <div className="flex items-center justify-between">
+                                                <div>
+                                                    <div className="font-medium">{i.email}</div>
+                                                    <div className="text-sm text-gray-500">
+                                                        Token: <code
+                                                        className="bg-gray-100 px-2 py-1 rounded">{i.token}</code>
+                                                    </div>
+                                                </div>
+                                                <div className="flex items-center gap-2">
+                                                    <div className="text-sm text-gray-600">Match ID: {i.matchId}</div>
+                                                    <Button
+                                                        variant="ghost"
+                                                        size="sm"
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            navigate(`/admin/invites/${i.id}`);
+                                                        }}
+                                                    >
+                                                        <Edit className="w-4 h-4"/>
+                                                    </Button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                        </CardContent>
+                    </Card>
+                </TabsContent>
+            </Tabs>
         </div>
     );
 }

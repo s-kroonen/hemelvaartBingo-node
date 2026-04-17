@@ -5,6 +5,9 @@ import AdminDashboard from "./pages/AdminDashboard";
 import BingoMasterPage from "./pages/BingoMasterPage";
 import {useAuthStore} from "./store/authStore";
 import LoginPage from "@/pages/LoginPage.tsx";
+import AdminUserEdit from "@/pages/AdminUserEdit.tsx";
+import AdminMatchEdit from "@/pages/AdminMatchEdit.tsx";
+import AdminInviteEdit from "@/pages/AdmininviteEdit.tsx";
 
 // Protected Route Component
 function ProtectedRoute({
@@ -47,6 +50,30 @@ export const router = createBrowserRouter([
                 element: (
                     <ProtectedRoute requiredRole="admin">
                         <AdminDashboard/>
+                    </ProtectedRoute>
+                ),
+            },
+            {
+                path: "admin/users/:id",
+                element: (
+                    <ProtectedRoute requiredRole="admin">
+                        <AdminUserEdit />
+                    </ProtectedRoute>
+                ),
+            },
+            {
+                path: "admin/matches/:id",
+                element: (
+                    <ProtectedRoute requiredRole="admin">
+                        <AdminMatchEdit />
+                    </ProtectedRoute>
+                ),
+            },
+            {
+                path: "admin/invites/:id",
+                element: (
+                    <ProtectedRoute requiredRole="admin">
+                        <AdminInviteEdit />
                     </ProtectedRoute>
                 ),
             },
