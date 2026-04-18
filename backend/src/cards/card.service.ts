@@ -1,6 +1,8 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { CardRepository } from './card.repository';
-import { createMarkedGrid, generateBingoCard } from '../shared/bingo.util';
+import {
+  generateBingoCells,
+} from '../shared/bingo.util';
 import { Types } from 'mongoose';
 import { MatchService } from '../matches/match.service';
 import { UserService } from '../users/user.service';
@@ -14,35 +16,28 @@ export class CardService {
   ) {}
 
   async createCard(userId: string, matchId: string, size: number) {
-    const grid = generateBingoCard(size);
-    const marked = createMarkedGrid(size);
+    const cells = generateBingoCells(size);
 
     return this.cardRepo.create({
       userId: new Types.ObjectId(userId),
       matchId: new Types.ObjectId(matchId),
-      grid,
-      marked,
+      cells,
     });
   }
 
   async regenerateCard(userId: string) {
-
     const user = await this.userService.findById(userId);
     if (!user) throw new NotFoundException('User does not exist');
 
     const card = await this.findByUserAndCurrentMatch(userId);
-    if (!card)
-      throw new NotFoundException('User Card not found for user' + userId);
+    if (!card) throw new NotFoundException('User Card not found');
 
     const match = await this.matchService.findById(user.currentMatchID);
-    if (!match)
-      throw new NotFoundException(
-        'Card found but no match with id ' + card.matchId,
-      );
-    const grid = generateBingoCard(match.cardSize);
-    const marked = createMarkedGrid(match.cardSize);
+    if (!match) throw new NotFoundException('Match not found');
 
-    return this.cardRepo.updateCard(card.id, { grid, marked });
+    const cells = generateBingoCells(match.cardSize);
+
+    return this.cardRepo.updateCard(card.id, { cells });
   }
 
   async findByUser(userId: string) {

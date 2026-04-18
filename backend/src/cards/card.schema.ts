@@ -1,20 +1,33 @@
 import { Types } from 'mongoose';
-import {Prop, Schema, SchemaFactory} from '@nestjs/mongoose';
-import {Match} from "../matches/match.schema";
+import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 
-@Schema()
+@Schema({ timestamps: true })
+export class BingoCell {
+  @Prop({ required: true })
+  id: string;
+
+  @Prop({ required: true })
+  value: string;
+
+  @Prop({ default: false })
+  isChecked: boolean;
+
+  @Prop({ required: true })
+  position: number;
+}
+
+const BingoCellSchema = SchemaFactory.createForClass(BingoCell);
+
+@Schema({ timestamps: true })
 export class Card {
-  @Prop({ type: Types.ObjectId, ref: 'User' })
+  @Prop({ type: Types.ObjectId, ref: 'User', required: true })
   userId: Types.ObjectId;
 
-  @Prop({ type: Types.ObjectId, ref: 'Match' })
+  @Prop({ type: Types.ObjectId, ref: 'Match', required: true })
   matchId: Types.ObjectId;
 
-  @Prop({ type: [[Number]] })
-  grid: number[][];
-
-  @Prop({ type: [[Boolean]] })
-  marked: boolean[][];
+  @Prop({ type: [BingoCellSchema], default: [] })
+  cells: BingoCell[];
 }
 
 export const CardSchema = SchemaFactory.createForClass(Card);
