@@ -47,9 +47,10 @@ export class InviteService {
     const matchId = new Types.ObjectId(match._id);
 
     // Add user to match safely
-    const alreadyInMatch = match.players.some(
-      (id) => id.toString() === userId.toString(),
-    );
+    const alreadyInMatch = match.players.some((p) => {
+      const id = p._id ?? p; // works for populated & non-populated
+      return id.equals(userId);
+    });
 
     if (!alreadyInMatch) {
       match.players.push(userId);
