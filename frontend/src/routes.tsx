@@ -8,6 +8,8 @@ import LoginPage from "@/pages/LoginPage.tsx";
 import AdminUserEdit from "@/pages/AdminUserEdit.tsx";
 import AdminMatchEdit from "@/pages/AdminMatchEdit.tsx";
 import AdminInviteEdit from "@/pages/AdminInviteEdit.tsx";
+import InviteJoin from "@/pages/InviteJoin.tsx";
+import ProfilePage from "@/pages/ProfilePage.tsx";
 
 // Protected Route Component
 function ProtectedRoute({
@@ -32,18 +34,26 @@ function ProtectedRoute({
     return <>{children}</>;
 }
 
-
 export const router = createBrowserRouter([
     {
         path: "/login",
         Component: LoginPage,
-    }, {
+    },
+    {
+        path: "/invites/join/:token",
+        Component: InviteJoin,
+    },
+    {
         path: "/",
         Component: Root,
         children: [
             {
                 index: true,
-                Component: LeaderboardPage,
+                element: (
+                    <ProtectedRoute>
+                        <LeaderboardPage/>
+                    </ProtectedRoute>
+                ),
             },
             {
                 path: "admin",
@@ -57,7 +67,7 @@ export const router = createBrowserRouter([
                 path: "admin/users/:id",
                 element: (
                     <ProtectedRoute requiredRole="admin">
-                        <AdminUserEdit />
+                        <AdminUserEdit/>
                     </ProtectedRoute>
                 ),
             },
@@ -65,7 +75,7 @@ export const router = createBrowserRouter([
                 path: "admin/matches/:id",
                 element: (
                     <ProtectedRoute requiredRole="admin">
-                        <AdminMatchEdit />
+                        <AdminMatchEdit/>
                     </ProtectedRoute>
                 ),
             },
@@ -73,7 +83,7 @@ export const router = createBrowserRouter([
                 path: "admin/invites/:id",
                 element: (
                     <ProtectedRoute requiredRole="admin">
-                        <AdminInviteEdit />
+                        <AdminInviteEdit/>
                     </ProtectedRoute>
                 ),
             },
@@ -82,6 +92,14 @@ export const router = createBrowserRouter([
                 element: (
                     <ProtectedRoute requiredRole="master">
                         <BingoMasterPage/>
+                    </ProtectedRoute>
+                ),
+            },
+            {
+                path: "profile",
+                element: (
+                    <ProtectedRoute>
+                        <ProfilePage/>
                     </ProtectedRoute>
                 ),
             },

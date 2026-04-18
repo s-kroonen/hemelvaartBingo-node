@@ -16,6 +16,13 @@ export class UserController {
     const user = await this.service.createIfNotExists(email);
     return user;
   }
+  @Put('me')
+  async updateProfile(@Req() req) {
+    const email = req.user.email;
+
+    const user = await this.service.createIfNotExists(email);
+    return user;
+  }
   @UseGuards(FirebaseAuthGuard)
   @Put("current-match")
   async updateCurrentMatch(@Req() req)  {

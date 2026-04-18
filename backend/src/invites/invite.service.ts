@@ -107,4 +107,8 @@ export class InviteService {
   async updateInvite(id: string, data: any) {
     return this.inviteRepo.findByIdAndUpdate(id, data);
   }
+
+  async findByToken(token: string) {
+    return this.inviteRepo.findByToken(token);
+  }
 }

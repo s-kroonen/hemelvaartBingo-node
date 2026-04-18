@@ -49,17 +49,17 @@ export default function Root() {
                   )}
                 </div>
               </div>
-              {user && (
-                  <div className="flex items-center gap-4">
-                    <div className="text-sm text-gray-600">
-                      {user.email}
+                {user && (
+                    <div className="flex items-center gap-4">
+                        <Link to="/profile" className="text-sm text-gray-600 hover:text-blue-600 transition">
+                            {user.email}
+                        </Link>
+                        <Button variant="outline" size="sm" onClick={logout}>
+                            <LogOut className="w-4 h-4 mr-2" />
+                            Logout
+                        </Button>
                     </div>
-                    <Button variant="outline" size="sm" onClick={logout}>
-                      <LogOut className="w-4 h-4 mr-2" />
-                      Logout
-                    </Button>
-                  </div>
-              )}
+                )}
             </div>
           </div>
         </nav>
