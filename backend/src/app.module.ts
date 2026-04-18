@@ -6,6 +6,7 @@ import {FirebaseModule} from "./auth/firebase.module";
 import {MatchModule} from "./matches/match.module";
 import config from "./config";
 import {MasterModule} from "./master/master.module";
+import { InviteModule } from './invites/invite.module';
 
 
 @Module({
@@ -15,6 +16,7 @@ import {MasterModule} from "./master/master.module";
         UserModule,
         MatchModule,
         AdminModule,
+        InviteModule,
         MasterModule,
     ],
 })

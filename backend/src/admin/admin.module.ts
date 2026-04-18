@@ -1,21 +1,15 @@
-import {Module} from "@nestjs/common";
-import {AdminService} from "./admin.service";
-import {AdminController} from "./admin.controller";
+import { Module } from '@nestjs/common';
+import { AdminService } from './admin.service';
+import { AdminController } from './admin.controller';
 
-import {UserModule} from '../users/user.module';
-import {InviteModule} from "../invites/invite.module";
-import {MatchModule} from "../matches/match.module";
+import { UserModule } from '../users/user.module';
+import { InviteModule } from '../invites/invite.module';
+import { MatchModule } from '../matches/match.module';
+import { CardModule } from '../cards/card.module';
 
 @Module({
-    imports: [
-        UserModule,
-        InviteModule,
-        MatchModule,
-    ],
-    controllers: [AdminController],
-    providers: [AdminService],
+  imports: [UserModule, InviteModule, MatchModule, CardModule],
+  controllers: [AdminController],
+  providers: [AdminService],
 })
-
-
-export class AdminModule {
-}
+export class AdminModule {}

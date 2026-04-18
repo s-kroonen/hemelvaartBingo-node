@@ -1,5 +1,12 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Types } from 'mongoose';
+import {
+  IsEmail,
+  IsEnum,
+  IsMongoId,
+  IsOptional,
+  IsString,
+} from 'class-validator';
 export enum Role {
   USER = 'user',
   ADMIN = 'admin',
@@ -38,3 +45,38 @@ UserSchema.set('toJSON', {
     delete (ret as any)._id; // Remove the original _id
   },
 });
+
+
+export class CreateUserDto {
+  @IsEmail()
+  email: string;
+
+  @IsOptional()
+  @IsString()
+  name?: string;
+
+  @IsOptional()
+  @IsEnum(Role, { each: true })
+  roles?: Role[];
+
+  @IsOptional()
+  @IsMongoId()
+  currentMatchId?: string;
+}
+export class UpdateUserDto {
+  @IsOptional()
+  @IsEmail()
+  email?: string;
+
+  @IsOptional()
+  @IsString()
+  name?: string;
+
+  @IsOptional()
+  @IsEnum(Role, { each: true })
+  roles?: Role[];
+
+  @IsOptional()
+  @IsMongoId()
+  currentMatchId?: string;
+}

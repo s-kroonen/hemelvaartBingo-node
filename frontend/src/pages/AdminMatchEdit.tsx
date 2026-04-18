@@ -1,16 +1,16 @@
-import { useParams, useNavigate } from "react-router";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { useState, useEffect } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card";
-import { Button } from "../components/ui/button";
-import { Input } from "../components/ui/input";
-import { ArrowLeft, Save, Plus, Trash2 } from "lucide-react";
-import { toast } from "sonner";
-import {type Match, MatchStatus, type Invite } from "../types";
-import { getMatch, updateMatch, getMatchInvites, addMatchInvite, removeMatchInvite } from "../api/admin";
+import {useParams, useNavigate} from "react-router";
+import {useQuery, useMutation, useQueryClient} from "@tanstack/react-query";
+import {useState, useEffect} from "react";
+import {Card, CardContent, CardHeader, CardTitle} from "../components/ui/card";
+import {Button} from "../components/ui/button";
+import {Input} from "../components/ui/input";
+import {ArrowLeft, Save, Plus, Trash2} from "lucide-react";
+import {toast} from "sonner";
+import {type Match, MatchStatus, type Invite} from "../types";
+import {getMatch, updateMatch, getMatchInvites, addMatchInvite, removeMatchInvite, createMatch} from "../api/admin";
 
 export default function AdminMatchEdit() {
-    const { id } = useParams();
+    const {id} = useParams();
     const navigate = useNavigate();
     const queryClient = useQueryClient();
     const isNew = id === "new";
@@ -24,26 +24,37 @@ export default function AdminMatchEdit() {
     const statusOptions = Object.values(MatchStatus);
 
     // Fetch match data
-    const { data: match, isLoading } = useQuery({
+    const {data: match, isLoading} = useQuery({
         queryKey: ["match", id],
         queryFn: () => getMatch(id!),
         enabled: !isNew,
     });
 
     // Fetch match invites
-    const { data: invites } = useQuery({
+    const {data: invites} = useQuery({
         queryKey: ["match-invites", id],
         queryFn: () => getMatchInvites(id!),
         enabled: !isNew,
     });
-
+    // Create mutation
+    const createMutation = useMutation({
+        mutationFn: (data: Partial<Match>) => createMatch(data),
+        onSuccess: () => {
+            toast.success("Match updated successfully");
+            queryClient.invalidateQueries({queryKey: ["matches"]});
+            queryClient.invalidateQueries({queryKey: ["match", id]});
+        },
+        onError: () => {
+            toast.error("Failed to create match");
+        },
+    });
     // Update mutation
     const updateMutation = useMutation({
         mutationFn: (data: Partial<Match>) => updateMatch(id!, data),
         onSuccess: () => {
             toast.success("Match updated successfully");
-            queryClient.invalidateQueries({ queryKey: ["matches"] });
-            queryClient.invalidateQueries({ queryKey: ["match", id] });
+            queryClient.invalidateQueries({queryKey: ["matches"]});
+            queryClient.invalidateQueries({queryKey: ["match", id]});
         },
         onError: () => {
             toast.error("Failed to update match");
@@ -55,7 +66,7 @@ export default function AdminMatchEdit() {
         mutationFn: (email: string) => addMatchInvite(id!, email),
         onSuccess: () => {
             toast.success("Invite sent successfully");
-            queryClient.invalidateQueries({ queryKey: ["match-invites", id] });
+            queryClient.invalidateQueries({queryKey: ["match-invites", id]});
         },
         onError: () => {
             toast.error("Failed to send invite");
@@ -67,7 +78,7 @@ export default function AdminMatchEdit() {
         mutationFn: (inviteId: string) => removeMatchInvite(id!, inviteId),
         onSuccess: () => {
             toast.success("Invite removed successfully");
-            queryClient.invalidateQueries({ queryKey: ["match-invites", id] });
+            queryClient.invalidateQueries({queryKey: ["match-invites", id]});
         },
         onError: () => {
             toast.error("Failed to remove invite");
@@ -90,14 +101,23 @@ export default function AdminMatchEdit() {
             toast.error("All fields are required");
             return;
         }
-
-        updateMutation.mutate({
-            name,
-            startDate: new Date(startDate).toISOString(),
-            endDate: new Date(endDate).toISOString(),
-            masterId,
-            status,
-        });
+        if (isNew) {
+            createMutation.mutate({
+                name,
+                startDate: new Date(startDate).toISOString(),
+                endDate: new Date(endDate).toISOString(),
+                masterId,
+                status,
+            });
+        } else {
+            updateMutation.mutate({
+                name,
+                startDate: new Date(startDate).toISOString(),
+                endDate: new Date(endDate).toISOString(),
+                masterId,
+                status,
+            });
+        }
     };
 
     if (isLoading) {
@@ -112,7 +132,7 @@ export default function AdminMatchEdit() {
         <div className="container mx-auto p-6 space-y-6">
             <div className="flex items-center gap-4">
                 <Button variant="ghost" size="sm" onClick={() => navigate("/admin")}>
-                    <ArrowLeft className="w-4 h-4 mr-2" />
+                    <ArrowLeft className="w-4 h-4 mr-2"/>
                     Back
                 </Button>
                 <h1 className="text-3xl font-bold">{isNew ? "Create Match" : "Edit Match"}</h1>
@@ -180,7 +200,7 @@ export default function AdminMatchEdit() {
                     </div>
 
                     <Button onClick={handleSave} disabled={updateMutation.isPending}>
-                        <Save className="w-4 h-4 mr-2" />
+                        <Save className="w-4 h-4 mr-2"/>
                         Save
                     </Button>
                 </CardContent>
@@ -202,7 +222,7 @@ export default function AdminMatchEdit() {
                                     }
                                 }}
                             >
-                                <Plus className="w-4 h-4 mr-2" />
+                                <Plus className="w-4 h-4 mr-2"/>
                                 Send Invite
                             </Button>
                         </div>
@@ -229,7 +249,7 @@ export default function AdminMatchEdit() {
                                             size="sm"
                                             onClick={() => removeInviteMutation.mutate(invite.id)}
                                         >
-                                            <Trash2 className="w-4 h-4 text-red-500" />
+                                            <Trash2 className="w-4 h-4 text-red-500"/>
                                         </Button>
                                     </div>
                                 ))}

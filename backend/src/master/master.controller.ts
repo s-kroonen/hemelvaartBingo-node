@@ -12,11 +12,9 @@ import {Role} from "../users/user.schema";
 export class MasterController {
     constructor(private cardService: CardService, private matchService : MatchService) {}
 
-    @UseGuards(FirebaseAuthGuard, RolesGuard)
-    @Roles(Role.ADMIN, Role.MASTER)
     @Post('cards/:id/regenerate')
     regenerate(@Param('id') id: string, @Body() body) {
-        return this.cardService.regenerateCard(id, body.size);
+        return this.cardService.regenerateCard(id);
     }
     @Get('matches')
     getMyMatches(@Req() req) {

@@ -1,6 +1,7 @@
-import { Controller, Get, Req, UseGuards } from '@nestjs/common';
+import { Controller, Get, Put, Req, Res, UseGuards } from '@nestjs/common';
 import { FirebaseAuthGuard } from '../auth/firebase-auth.guard';
 import { UserService } from './user.service';
+import { matches } from 'class-validator';
 
 @Controller('users')
 export class UserController {
@@ -15,4 +16,14 @@ export class UserController {
     const user = await this.service.createIfNotExists(email);
     return user;
   }
+  @UseGuards(FirebaseAuthGuard)
+  @Put("current-match")
+  async updateCurrentMatch(@Req() req)  {
+    const email = req.user.email;
+    const user = await this.service.createIfNotExists(email);
+    const match = await this.service.updateCurrentMatch(user.id, req.body.matchId);
+    return match;
+
+  }
+
 }

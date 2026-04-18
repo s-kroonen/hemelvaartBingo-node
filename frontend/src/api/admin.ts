@@ -4,6 +4,7 @@ import type {User, Match, Invite, Award} from '../types';
 // ===== Users =====
 export const getUsers = async () => {
     const response = await api.get('/admin/users');
+    console.log(response);
     return response.data;
 };
 
@@ -30,6 +31,7 @@ export const deleteUser = async (id: string) => {
 // ===== User Cards =====
 export const getUserCard = async (userId: string) => {
     const response = await api.get(`/admin/users/${userId}/card`);
+    if (response.data === undefined || response.data == 0) return null;
     return response.data;
 };
 
@@ -87,7 +89,7 @@ export const getMatchInvites = async (matchId: string) => {
 };
 
 export const addMatchInvite = async (matchId: string, email: string) => {
-    const response = await api.post(`/admin/matches/${matchId}/invites`, { email });
+    const response = await api.post(`/admin/matches/${matchId}/invites`, {email});
     return response.data;
 };
 
