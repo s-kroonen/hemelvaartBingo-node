@@ -31,7 +31,7 @@ export class MatchService {
     return this.repo.update(matchId, data);
   }
 
-  async addMaster(matchId: string, userId: Types.ObjectId) {
+  async addMaster(matchId: string, userId: string) {
     const match = await this.repo.findById(matchId);
 
     if (!match) {
@@ -47,6 +47,15 @@ export class MatchService {
     }
 
     return this.repo.addMaster(matchId, userId);
+  }
+  async removeMaster(matchId: string, userId: string) {
+    const match = await this.repo.findById(matchId);
+
+    if (!match) {
+      throw new NotFoundException('Match not found');
+    }
+
+    return this.repo.removeMaster(matchId, userId);
   }
 
   async delete(matchId: string) {

@@ -13,16 +13,6 @@ export class AdminService {
   ) {}
 
 
-  async assignMaster(matchId: string, userId: string) {
-    const match = await this.matchService.findById(matchId);
-
-    if (!match) {
-      throw new NotFoundException(`Match with id ${matchId} not found`);
-    }
-
-    return this.matchService.addMaster(matchId, new Types.ObjectId(userId));
-  }
-
   async promoteToAdmin(userId: string) {
     return this.userService.addRole(userId, Role.ADMIN);
   }
@@ -34,4 +24,6 @@ export class AdminService {
   async removeRole(userId: string, role: Role) {
     return this.userService.removeRole(userId, role);
   }
+
+
 }

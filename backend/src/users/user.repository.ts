@@ -36,4 +36,8 @@ export class UserRepository {
   async delete(id: string) {
     return this.userModel.findByIdAndDelete(id);
   }
+
+  async findByRole(role: string) {
+    return this.userModel.find({roles: role});
+  }
 }

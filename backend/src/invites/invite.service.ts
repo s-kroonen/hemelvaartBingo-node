@@ -92,12 +92,19 @@ export class InviteService {
     return this.inviteRepo.findAll();
   }
 
-  delete(id: string) {
+  async delete(id: string) {
     return this.inviteRepo.delete(id);
   }
 
-  findByMatch(matchId: string) {
+  async findByMatch(matchId: string) {
     return this.inviteRepo.findByMatch(matchId);
+  }
 
+  async findById(inviteId: string) {
+    return this.inviteRepo.findById(inviteId);
+  }
+
+  async updateInvite(id: string, data: any) {
+    return this.inviteRepo.findByIdAndUpdate(id, data);
   }
 }

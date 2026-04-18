@@ -2,7 +2,7 @@
 export interface User {
     id: string;
     email: string;
-    name?: string;
+    username?: string;
     roles: string[];
     currentMatchId: string | null;
     cardId?: string;
@@ -44,7 +44,7 @@ export const AwardType = {
     FIRST_BINGO: "FIRST_BINGO", // First person to get bingo
     SPECIAL: "SPECIAL", // Custom award from master
 }
-export type AwardType =   typeof  AwardType[keyof typeof AwardType];
+export type AwardType = typeof AwardType[keyof typeof AwardType];
 
 // Match types
 export interface Match {
@@ -52,9 +52,10 @@ export interface Match {
     name: string;
     startDate: string;
     endDate: string;
-    masterId: string;
-    master?: User;
+    masters: User[];
+    players: User[];
     status: MatchStatus;
+    cardSize: number; // Default 5 for 5x5 grid
     settings?: MatchSettings;
 }
 
@@ -64,7 +65,7 @@ export const MatchStatus = {
     COMPLETED: "COMPLETED",
     CANCELLED: "CANCELLED",
 }
-export type MatchStatus =   typeof  MatchStatus[keyof typeof MatchStatus];
+export type MatchStatus = typeof MatchStatus[keyof typeof MatchStatus];
 
 export interface MatchSettings {
     maxParticipants?: number;
@@ -75,17 +76,25 @@ export interface MatchSettings {
 // Invite types
 export interface Invite {
     id: string;
-    email: string;
+    name: string;
     matchId: string;
     token: string;
-    status: InviteStatus;
+    isActive: boolean;
+    expiresAt: string; // Match end date
     createdAt: string;
-    expiresAt?: string;
+    metadata?: InviteMetadata;
 }
-
 export const InviteStatus = {
     PENDING: "PENDING",
     ACCEPTED: "ACCEPTED",
     EXPIRED: "EXPIRED",
 }
-export type InviteStatus =   typeof  InviteStatus[keyof typeof InviteStatus];
+export interface InviteMetadata {
+    watchAdBeforeJoin?: boolean;
+    joinAsRole?: "user" | "master" | "admin";
+    description?: string;
+
+    // allow future/unknown fields without breaking UI
+    [key: string]: any;
+}
+export type InviteStatus = typeof InviteStatus[keyof typeof InviteStatus];

@@ -96,4 +96,8 @@ export class UserService {
   async findById(userId: string) {
     return this.repo.findById(userId);
   }
+
+  async getUserByRole(role: string) {
+    return this.repo.findByRole(role);
+  }
 }

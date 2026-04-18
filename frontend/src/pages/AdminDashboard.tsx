@@ -62,7 +62,7 @@ export default function AdminDashboard() {
                                         >
                                             <div>
                                                 <div className="font-medium">{u.email}</div>
-                                                {u.name && <div className="text-sm text-gray-500">{u.name}</div>}
+                                                {u.username && <div className="text-sm text-gray-500">{u.username}</div>}
                                             </div>
                                             <div className="flex items-center gap-2">
                                                 <div className="flex gap-1">
@@ -123,11 +123,9 @@ export default function AdminDashboard() {
                                                         {new Date(m.endDate).toLocaleDateString()}
                                                     </div>
                                                 )}
-                                                {m.master && (
-                                                    <div className="text-sm text-gray-600 mt-1">
-                                                        Master: {m.master.email}
-                                                    </div>
-                                                )}
+                                                <div className="text-sm text-gray-600 mt-1">
+                                                    {m.masters?.length || 0} masters • {m.players?.length || 0} players
+                                                </div>
                                             </div>
                                             <Button
                                                 variant="ghost"
@@ -173,7 +171,7 @@ export default function AdminDashboard() {
                                         >
                                             <div className="flex items-center justify-between">
                                                 <div>
-                                                    <div className="font-medium">{i.email}</div>
+                                                    <div className="font-medium">{i.name}</div>
                                                     <div className="text-sm text-gray-500">
                                                         Token: <code
                                                         className="bg-gray-100 px-2 py-1 rounded">{i.token}</code>

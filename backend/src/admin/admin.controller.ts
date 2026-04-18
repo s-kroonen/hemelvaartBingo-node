@@ -13,19 +13,19 @@ import { RolesGuard } from '../auth/roles.guard';
 import { Roles } from '../auth/roles.decorator';
 import { AdminService } from './admin.service';
 import { IsEnum } from 'class-validator';
-import { CreateUserDto, Role, UpdateUserDto } from '../users/user.schema';
+import {
+  CreateUserDto,
+  Role,
+  RoleDto,
+  UpdateUserDto,
+} from '../users/user.schema';
 import { InviteService } from '../invites/invite.service';
 import { Types } from 'mongoose';
-import { CreateInviteDto } from '../invites/invite.schema';
+import { CreateInviteDto, UpdateInviteDto } from '../invites/invite.schema';
 import { CreateMatchDto, UpdateMatchDto } from '../matches/match.schema';
 import { MatchService } from '../matches/match.service';
 import { UserService } from '../users/user.service';
 import { CardService } from '../cards/card.service';
-
-export class UpdateRoleDto {
-  @IsEnum(Role)
-  role: Role;
-}
 
 @Controller('admin')
 @UseGuards(FirebaseAuthGuard, RolesGuard)
@@ -49,6 +49,11 @@ export class AdminController {
   getUser(@Param('id') id: string) {
     return this.userService.getUser(id);
   }
+  @Get('users/by-role/:role')
+  getUserByRole(@Param('role') role: string) {
+    console.log('looking for user with role', role);
+    return this.userService.getUserByRole(role);
+  }
 
   @Post('users')
   createUser(@Body() dto: CreateUserDto) {
@@ -71,12 +76,12 @@ export class AdminController {
   }
 
   @Put('users/:userId/role')
-  updateRole(@Param('userId') userId: string, @Body() body: UpdateRoleDto) {
+  updateRole(@Param('userId') userId: string, @Body() body: RoleDto) {
     return this.service.addRole(userId, body.role);
   }
 
   @Put('users/:userId/role/remove')
-  removeRole(@Param('userId') userId: string, @Body() body: UpdateRoleDto) {
+  removeRole(@Param('userId') userId: string, @Body() body: RoleDto) {
     return this.service.removeRole(userId, body.role);
   }
 
@@ -103,11 +108,15 @@ export class AdminController {
   }
   @Post('matches/:id/master/:userId')
   assignMaster(@Param('id') matchId: string, @Param('userId') userId: string) {
-    return this.service.assignMaster(matchId, userId);
+    return this.matchService.addMaster(matchId, userId);
+  }
+  @Delete('matches/:id/master/:userId')
+  removeMaster(@Param('id') matchId: string, @Param('userId') userId: string) {
+    return this.matchService.removeMaster(matchId, userId);
   }
 
   // INVITES
-  @Post('invites')
+  @Post('/matches/:matchId/invites')
   createInvite(@Body() dto: CreateInviteDto) {
     return this.inviteService.createInvite(new Types.ObjectId(dto.matchId));
   }
@@ -119,10 +128,19 @@ export class AdminController {
   getInvites() {
     return this.inviteService.findAll();
   }
+  @Get('/invites/:id')
+  getInvite(@Param('id') id: string) {
+    return this.inviteService.findById(id);
+  }
+  @Put('/invites/:id')
+  updateInvite(@Param('id') id: string, @Body() dto: UpdateInviteDto) {
+    return this.inviteService.updateInvite(id, dto);
+  }
   @Delete('/invites/:id')
   deleteInvite(@Param('id') id: string) {
     return this.inviteService.delete(id);
   }
+
   // CARDS
   @Get('/users/:userId/card')
   getUserCard(@Param('userId') userId: string) {

@@ -7,7 +7,7 @@ import {useAuthStore} from "./store/authStore";
 import LoginPage from "@/pages/LoginPage.tsx";
 import AdminUserEdit from "@/pages/AdminUserEdit.tsx";
 import AdminMatchEdit from "@/pages/AdminMatchEdit.tsx";
-import AdminInviteEdit from "@/pages/AdmininviteEdit.tsx";
+import AdminInviteEdit from "@/pages/AdminInviteEdit.tsx";
 
 // Protected Route Component
 function ProtectedRoute({

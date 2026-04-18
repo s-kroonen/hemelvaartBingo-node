@@ -45,7 +45,10 @@ UserSchema.set('toJSON', {
     delete (ret as any)._id; // Remove the original _id
   },
 });
-
+export class RoleDto {
+  @IsEnum(Role)
+  role: Role;
+}
 
 export class CreateUserDto {
   @IsEmail()

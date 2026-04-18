@@ -17,7 +17,7 @@ export default function AdminUserEdit() {
     const isNew = id === "new";
 
     const [email, setEmail] = useState("");
-    const [name, setName] = useState("");
+    const [username, setName] = useState("");
     const [selectedRoles, setSelectedRoles] = useState<string[]>([]);
     const [currentMatchId, setCurrentMatchId] = useState("");
 
@@ -111,7 +111,7 @@ export default function AdminUserEdit() {
 
         updateMutation.mutate({
             email,
-            name: name || undefined,
+            username: username || undefined,
             roles: selectedRoles,
             currentMatchId: currentMatchId || null,
         });
@@ -161,7 +161,7 @@ export default function AdminUserEdit() {
                         <label className="block text-sm font-medium mb-1">Name (optional)</label>
                         <Input
                             type="text"
-                            value={name}
+                            value={username}
                             onChange={(e) => setName(e.target.value)}
                             placeholder="John Doe"
                         />

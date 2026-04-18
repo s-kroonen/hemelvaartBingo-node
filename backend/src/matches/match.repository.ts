@@ -15,7 +15,7 @@ export class MatchRepository {
     return this.model.find().populate('masters players');
   }
   async findById(id: string | Types.ObjectId) {
-    return this.model.findById(id);
+    return this.model.findById(id).populate('masters players');
   }
 
   update(id: string, data: Partial<Match>) {
@@ -25,12 +25,23 @@ export class MatchRepository {
   delete(id: string) {
     return this.model.findByIdAndDelete(id);
   }
-  async addMaster(matchId: string, userId: Types.ObjectId) {
+  async addMaster(matchId: string, userId: string) {
     return this.model
       .findByIdAndUpdate(
         matchId,
         {
           $addToSet: { masters: userId },
+        },
+        { new: true },
+      )
+      .exec();
+  }
+  async removeMaster(matchId: string, userId: string) {
+    return this.model
+      .findByIdAndUpdate(
+        matchId,
+        {
+          $pull: { masters: userId },
         },
         { new: true },
       )
@@ -46,4 +57,6 @@ export class MatchRepository {
       masters: masterId,
     });
   }
+
+
 }

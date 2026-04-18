@@ -4,7 +4,6 @@ import type {User, Match, Invite, Award} from '../types';
 // ===== Users =====
 export const getUsers = async () => {
     const response = await api.get('/admin/users');
-    console.log(response);
     return response.data;
 };
 
@@ -27,7 +26,10 @@ export const deleteUser = async (id: string) => {
     const response = await api.delete(`/admin/users/${id}`);
     return response.data;
 };
-
+export const getUsersByRole = async (role: string) => {
+    const response = await api.get(`/admin/users/by-role/${role}`);
+    return response.data;
+};
 // ===== User Cards =====
 export const getUserCard = async (userId: string) => {
     const response = await api.get(`/admin/users/${userId}/card`);
@@ -82,21 +84,38 @@ export const deleteMatch = async (id: string) => {
     return response.data;
 };
 
+// ===== Match Masters & Players =====
+export const addMatchMaster = async (matchId: string, userId: string) => {
+    const response = await api.post(`/admin/matches/${matchId}/master/${userId}`);
+    return response.data;
+};
+
+export const removeMatchMaster = async (matchId: string, userId: string) => {
+    const response = await api.delete(`/admin/matches/${matchId}/master/${userId}`);
+    return response.data;
+};
+
+export const addMatchPlayer = async (matchId: string, userId: string) => {
+    const response = await api.post(`/admin/matches/${matchId}/players`, {userId});
+    return response.data;
+};
+
+export const removeMatchPlayer = async (matchId: string, userId: string) => {
+    const response = await api.delete(`/admin/matches/${matchId}/players/${userId}`);
+    return response.data;
+};
+
 // ===== Match Invites =====
 export const getMatchInvites = async (matchId: string) => {
     const response = await api.get(`/admin/matches/${matchId}/invites`);
     return response.data;
 };
 
-export const addMatchInvite = async (matchId: string, email: string) => {
-    const response = await api.post(`/admin/matches/${matchId}/invites`, {email});
+export const addMatchInvite = async (matchId: string) => {
+    const response = await api.post(`/admin/matches/${matchId}/invites`, {matchId});
     return response.data;
 };
 
-export const removeMatchInvite = async (matchId: string, inviteId: string) => {
-    const response = await api.delete(`/admin/matches/${matchId}/invites/${inviteId}`);
-    return response.data;
-};
 
 // ===== Invites =====
 export const getInvites = async () => {
