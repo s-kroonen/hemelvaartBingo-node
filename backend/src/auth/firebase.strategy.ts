@@ -26,7 +26,6 @@ export class FirebaseStrategy extends PassportStrategy(Strategy, 'firebase') {
             // This is where we bridge Firebase with your MongoDB
             const dbUser = await this.userService.createIfNotExists(decodedToken.email);
             if (decodedToken.email === config.defaultEmail) {
-                this.logger.debug("test admin found", config.defaultEmail)
                 if (!dbUser.roles.includes(Role.ADMIN)) {
                     dbUser.roles.push(Role.ADMIN);
                     await this.userService.addRoles(dbUser.id, dbUser.roles);
