@@ -1,13 +1,13 @@
-import { useParams, useNavigate } from "react-router";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { useState, useEffect } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card";
-import { Button } from "../components/ui/button";
-import { Input } from "../components/ui/input";
-import { Badge } from "../components/ui/badge";
-import { ArrowLeft, Save, Plus, Trash2, Copy, ToggleLeft, ToggleRight } from "lucide-react";
-import { toast } from "sonner";
-import {type Match, MatchStatus, type Invite, type User } from "../types";
+import {useParams, useNavigate} from "react-router";
+import {useQuery, useMutation, useQueryClient} from "@tanstack/react-query";
+import {useState, useEffect} from "react";
+import {Card, CardContent, CardHeader, CardTitle} from "../components/ui/card";
+import {Button} from "../components/ui/button";
+import {Input} from "../components/ui/input";
+import {Badge} from "../components/ui/badge";
+import {ArrowLeft, Save, Plus, Trash2, Copy, ToggleLeft, ToggleRight} from "lucide-react";
+import {toast} from "sonner";
+import {type Match, MatchStatus, type Invite, type User} from "../types";
 import {
     getMatch,
     updateMatch,
@@ -17,11 +17,11 @@ import {
     getUsersByRole,
     addMatchMaster,
     removeMatchMaster,
-    updateInvite
+    updateInvite, createMatch
 } from "../api/admin";
 
 export default function AdminMatchEdit() {
-    const { id } = useParams();
+    const {id} = useParams();
     const navigate = useNavigate();
     const queryClient = useQueryClient();
     const isNew = id === "new";
@@ -36,32 +36,43 @@ export default function AdminMatchEdit() {
     const statusOptions = Object.values(MatchStatus);
 
     // Fetch match data
-    const { data: match, isLoading } = useQuery({
+    const {data: match, isLoading} = useQuery({
         queryKey: ["match", id],
         queryFn: () => getMatch(id!),
         enabled: !isNew,
     });
 
     // Fetch users with master role
-    const { data: masterUsers } = useQuery({
+    const {data: masterUsers} = useQuery({
         queryKey: ["users-masters"],
         queryFn: () => getUsersByRole("master"),
     });
 
     // Fetch match invites
-    const { data: invites } = useQuery({
+    const {data: invites} = useQuery({
         queryKey: ["match-invites", id],
         queryFn: () => getMatchInvites(id!),
         enabled: !isNew,
     });
-
+    // Create mutation
+    const createMutation = useMutation({
+        mutationFn: (data: Partial<Match>) => createMatch(data),
+        onSuccess: () => {
+            toast.success("Match updated successfully");
+            queryClient.invalidateQueries({queryKey: ["matches"]});
+            queryClient.invalidateQueries({queryKey: ["match", id]});
+        },
+        onError: () => {
+            toast.error("Failed to update match");
+        },
+    });
     // Update mutation
     const updateMutation = useMutation({
         mutationFn: (data: Partial<Match>) => updateMatch(id!, data),
         onSuccess: () => {
             toast.success("Match updated successfully");
-            queryClient.invalidateQueries({ queryKey: ["matches"] });
-            queryClient.invalidateQueries({ queryKey: ["match", id] });
+            queryClient.invalidateQueries({queryKey: ["matches"]});
+            queryClient.invalidateQueries({queryKey: ["match", id]});
         },
         onError: () => {
             toast.error("Failed to update match");
@@ -73,7 +84,7 @@ export default function AdminMatchEdit() {
         mutationFn: (userId: string) => addMatchMaster(id!, userId),
         onSuccess: () => {
             toast.success("Master added successfully");
-            queryClient.invalidateQueries({ queryKey: ["match", id] });
+            queryClient.invalidateQueries({queryKey: ["match", id]});
             setSelectedMasterToAdd("");
         },
         onError: () => {
@@ -86,7 +97,7 @@ export default function AdminMatchEdit() {
         mutationFn: (userId: string) => removeMatchMaster(id!, userId),
         onSuccess: () => {
             toast.success("Master removed successfully");
-            queryClient.invalidateQueries({ queryKey: ["match", id] });
+            queryClient.invalidateQueries({queryKey: ["match", id]});
         },
         onError: () => {
             toast.error("Failed to remove master");
@@ -98,7 +109,7 @@ export default function AdminMatchEdit() {
         mutationFn: () => addMatchInvite(id!),
         onSuccess: () => {
             toast.success("Invite created successfully");
-            queryClient.invalidateQueries({ queryKey: ["match-invites", id] });
+            queryClient.invalidateQueries({queryKey: ["match-invites", id]});
         },
         onError: () => {
             toast.error("Failed to create invite");
@@ -107,11 +118,11 @@ export default function AdminMatchEdit() {
 
     // Toggle invite active mutation
     const toggleInviteMutation = useMutation({
-        mutationFn: ({ inviteId, isActive }: { inviteId: string; isActive: boolean }) =>
-            updateInvite(inviteId, { isActive }),
+        mutationFn: ({inviteId, isActive}: { inviteId: string; isActive: boolean }) =>
+            updateInvite(inviteId, {isActive}),
         onSuccess: () => {
             toast.success("Invite status updated");
-            queryClient.invalidateQueries({ queryKey: ["match-invites", id] });
+            queryClient.invalidateQueries({queryKey: ["match-invites", id]});
         },
         onError: () => {
             toast.error("Failed to update invite");
@@ -123,7 +134,7 @@ export default function AdminMatchEdit() {
         mutationFn: (inviteId: string) => deleteInvite(inviteId),
         onSuccess: () => {
             toast.success("Invite removed successfully");
-            queryClient.invalidateQueries({ queryKey: ["match-invites", id] });
+            queryClient.invalidateQueries({queryKey: ["match-invites", id]});
         },
         onError: () => {
             toast.error("Failed to remove invite");
@@ -146,14 +157,23 @@ export default function AdminMatchEdit() {
             toast.error("Name, start date, and end date are required");
             return;
         }
-
-        updateMutation.mutate({
-            name,
-            startDate: new Date(startDate).toISOString(),
-            endDate: new Date(endDate).toISOString(),
-            cardSize,
-            status,
-        });
+        if (isNew) {
+            createMutation.mutate({
+                name,
+                startDate: new Date(startDate).toISOString(),
+                endDate: new Date(endDate).toISOString(),
+                cardSize,
+                status,
+            });
+        } else {
+            updateMutation.mutate({
+                name,
+                startDate: new Date(startDate).toISOString(),
+                endDate: new Date(endDate).toISOString(),
+                cardSize,
+                status,
+            });
+        }
     };
 
     const copyInviteLink = (token: string) => {
@@ -174,7 +194,7 @@ export default function AdminMatchEdit() {
         <div className="container mx-auto p-6 space-y-6">
             <div className="flex items-center gap-4">
                 <Button variant="ghost" size="sm" onClick={() => navigate("/admin")}>
-                    <ArrowLeft className="w-4 h-4 mr-2" />
+                    <ArrowLeft className="w-4 h-4 mr-2"/>
                     Back
                 </Button>
                 <h1 className="text-3xl font-bold">{isNew ? "Create Match" : "Edit Match"}</h1>
@@ -243,7 +263,7 @@ export default function AdminMatchEdit() {
                     </div>
 
                     <Button onClick={handleSave} disabled={updateMutation.isPending}>
-                        <Save className="w-4 h-4 mr-2" />
+                        <Save className="w-4 h-4 mr-2"/>
                         Save
                     </Button>
                 </CardContent>
@@ -273,7 +293,7 @@ export default function AdminMatchEdit() {
                                 onClick={() => selectedMasterToAdd && addMasterMutation.mutate(selectedMasterToAdd)}
                                 disabled={!selectedMasterToAdd || addMasterMutation.isPending}
                             >
-                                <Plus className="w-4 h-4 mr-2" />
+                                <Plus className="w-4 h-4 mr-2"/>
                                 Add
                             </Button>
                         </div>
@@ -293,7 +313,7 @@ export default function AdminMatchEdit() {
                                         size="sm"
                                         onClick={() => removeMasterMutation.mutate(master.id)}
                                     >
-                                        <Trash2 className="w-4 h-4 text-red-500" />
+                                        <Trash2 className="w-4 h-4 text-red-500"/>
                                     </Button>
                                 </div>
                             ))}
@@ -336,7 +356,7 @@ export default function AdminMatchEdit() {
                                 size="sm"
                                 onClick={() => addInviteMutation.mutate()}
                             >
-                                <Plus className="w-4 h-4 mr-2" />
+                                <Plus className="w-4 h-4 mr-2"/>
                                 Create Invite
                             </Button>
                         </div>
@@ -372,7 +392,7 @@ export default function AdminMatchEdit() {
                                                     size="sm"
                                                     onClick={() => copyInviteLink(invite.token)}
                                                 >
-                                                    <Copy className="w-4 h-4" />
+                                                    <Copy className="w-4 h-4"/>
                                                 </Button>
                                                 <Button
                                                     variant="ghost"
@@ -385,9 +405,9 @@ export default function AdminMatchEdit() {
                                                     }
                                                 >
                                                     {invite.isActive ? (
-                                                        <ToggleRight className="w-4 h-4 text-green-500" />
+                                                        <ToggleRight className="w-4 h-4 text-green-500"/>
                                                     ) : (
-                                                        <ToggleLeft className="w-4 h-4 text-gray-400" />
+                                                        <ToggleLeft className="w-4 h-4 text-gray-400"/>
                                                     )}
                                                 </Button>
                                                 <Button
@@ -395,7 +415,7 @@ export default function AdminMatchEdit() {
                                                     size="sm"
                                                     onClick={() => removeInviteMutation.mutate(invite.id)}
                                                 >
-                                                    <Trash2 className="w-4 h-4 text-red-500" />
+                                                    <Trash2 className="w-4 h-4 text-red-500"/>
                                                 </Button>
                                             </div>
                                         </div>

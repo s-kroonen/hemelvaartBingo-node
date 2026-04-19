@@ -52,7 +52,7 @@ export class CardService {
     const user = await this.userService.findById(userId);
     if (!user) throw new NotFoundException('User does not exist');
     const match = await this.matchService.findById(user.currentMatchID);
-    if (!match) throw new NotFoundException('Match does not exist');
+    if (!match) return null;
     return this.cardRepo.findByUserAndMatch(user._id, match._id);
   }
 }
