@@ -4,6 +4,7 @@ import {
   IsDateString,
   IsEnum,
   IsMongoId,
+  IsNumber,
   IsOptional,
   IsString,
 } from 'class-validator';
@@ -55,8 +56,8 @@ export class CreateMatchDto {
   @IsDateString()
   endDate: string;
 
-  @IsMongoId()
-  masterId: string;
+  @IsNumber()
+  cardSize: number;
 
   @IsEnum(MatchStatus,{each: true})
   status: MatchStatus;
@@ -75,8 +76,8 @@ export class UpdateMatchDto {
   endDate: string;
 
   @IsOptional()
-  @IsMongoId()
-  masterId: string;
+  @IsNumber()
+  cardSize: number;
 
   @IsOptional()
   @IsEnum(MatchStatus,{each: true})

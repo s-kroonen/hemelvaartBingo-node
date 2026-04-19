@@ -51,7 +51,6 @@ export class AdminController {
   }
   @Get('users/by-role/:role')
   getUserByRole(@Param('role') role: string) {
-    console.log('looking for user with role', role);
     return this.userService.getUserByRole(role);
   }
 
@@ -70,10 +69,10 @@ export class AdminController {
     return this.userService.deleteUser(id);
   }
 
-  @Post('users/:id/promote')
-  promote(@Param('id') id: string) {
-    return this.service.promoteToAdmin(id);
-  }
+  // @Post('users/:id/promote')
+  // promote(@Param('id') id: string) {
+  //   return this.service.promoteToAdmin(id);
+  // }
 
   @Put('users/:userId/role')
   updateRole(@Param('userId') userId: string, @Body() body: RoleDto) {
