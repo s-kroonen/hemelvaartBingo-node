@@ -147,12 +147,12 @@ export default function AdminDashboard() {
 
                 {/* Invites Tab */}
                 <TabsContent value="invites" className="space-y-4">
-                    <div className="flex justify-end">
-                        <Button onClick={() => navigate("/admin/invites/new")}>
-                            <Plus className="w-4 h-4 mr-2"/>
-                            Create Invite
-                        </Button>
-                    </div>
+                    {/*<div className="flex justify-end">*/}
+                    {/*    <Button onClick={() => navigate("/admin/invites/new")}>*/}
+                    {/*        <Plus className="w-4 h-4 mr-2"/>*/}
+                    {/*        Create Invite*/}
+                    {/*    </Button>*/}
+                    {/*</div>*/}
 
                     <Card>
                         <CardHeader>
