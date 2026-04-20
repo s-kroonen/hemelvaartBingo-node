@@ -1,11 +1,14 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Types } from 'mongoose';
 import {
+  IsArray,
+  IsBoolean,
   IsDateString,
   IsEnum,
   IsMongoId,
   IsNumber,
   IsOptional,
+  IsPositive,
   IsString,
 } from 'class-validator';
 import { UserSchema } from '../users/user.schema';
@@ -34,8 +37,18 @@ export class Match {
 
   @Prop({ default: 5 })
   cardSize: number;
+
   @Prop()
   status: MatchStatus;
+
+  @Prop({ type: [Number], default: [] })
+  calledNumbers: number[];
+
+  @Prop({ default: 1 })
+  numbersPerEvent: number;
+
+  @Prop({ default: false })
+  autoNumberDistribution: boolean;
 }
 
 export const MatchSchema = SchemaFactory.createForClass(Match);
@@ -59,7 +72,7 @@ export class CreateMatchDto {
   @IsNumber()
   cardSize: number;
 
-  @IsEnum(MatchStatus,{each: true})
+  @IsEnum(MatchStatus, { each: true })
   status: MatchStatus;
 }
 export class UpdateMatchDto {
@@ -80,6 +93,20 @@ export class UpdateMatchDto {
   cardSize: number;
 
   @IsOptional()
-  @IsEnum(MatchStatus,{each: true})
+  @IsEnum(MatchStatus, { each: true })
   status: MatchStatus;
+
+  @IsOptional()
+  @IsArray()
+  calledNumbers: number[];
+
+  @IsOptional()
+  @IsNumber()
+  @IsPositive()
+  numbersPerEvent: number;
+
+  @IsOptional()
+  @IsBoolean()
+  autoNumberDistribution: boolean;
+
 }

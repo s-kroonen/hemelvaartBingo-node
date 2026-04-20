@@ -58,5 +58,7 @@ export class MatchRepository {
     });
   }
 
-
+  async updateName(id: string, name: string) {
+    return this.model.findByIdAndUpdate(id, { name: name });
+  }
 }

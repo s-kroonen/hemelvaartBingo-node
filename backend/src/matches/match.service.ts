@@ -67,4 +67,7 @@ export class MatchService {
     return this.repo.findByMaster(objectId);
   }
 
+  async updateMatchName(id: string, name: string) {
+    return this.repo.updateName(id, name);
+  }
 }

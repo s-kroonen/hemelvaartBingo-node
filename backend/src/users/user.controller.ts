@@ -42,8 +42,7 @@ export class UserController {
     @Get('me/current-match')
     async getCurrentMatchContext(@Req() req) {
         const email = req.user.email;
-        const user = await this.userService.findById(email);
-        if (!user) throw new NotFoundException('User not found');
+        const user = await this.userService.createIfNotExists(email);
 
         return this.userService.getCurrentMatchContext(user.id);
     }
@@ -52,8 +51,8 @@ export class UserController {
     async getMyMatches(@Req() req) {
         const email = req.user.email;
 
-        const user = await this.userService.findByEmail(email);
-        if (!user) throw new NotFoundException('User not found');
+        const user = await this.userService.createIfNotExists(email);
+
         const userId = new Types.ObjectId(user._id);
         return this.matchService.getUserMatches(userId);
     }
@@ -63,9 +62,8 @@ export class UserController {
     async getMatchContext(@Param('id') matchId: string, @Req() req) {
         const email = req.user.email;
 
-        const user = await this.userService.findByEmail(email);
+        const user = await this.userService.createIfNotExists(email);
 
-        if (!user) throw new NotFoundException('User not found');
         return this.userService.getMatchContext(user._id,matchId);
 
     }

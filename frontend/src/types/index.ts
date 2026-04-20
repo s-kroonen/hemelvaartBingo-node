@@ -8,6 +8,21 @@ export interface User {
     cardId?: string;
     awards?: Award[];
 }
+export interface BingoEvent {
+    id: string;
+    matchId: string;
+
+    name: string;
+    description?: string;
+    imageUrl?: string;
+
+    called: boolean;
+    calledAt?: string;
+
+    numbers: number[];
+
+    metadata?: Record<string, any>;
+}
 
 // Card types - represents a bingo card assigned to a user
 export interface BingoCard {

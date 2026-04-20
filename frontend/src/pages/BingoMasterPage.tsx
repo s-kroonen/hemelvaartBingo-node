@@ -28,6 +28,7 @@ import { toast } from "sonner";
 import { Calendar, Users, ListTodo, Mail, Trash2, Edit2, Plus, RefreshCw, Save, X } from "lucide-react";
 import { Textarea } from "../components/ui/textarea";
 import { format } from "date-fns";
+import type {BingoEvent} from "@/types";
 
 export default function BingoMasterPage() {
     const [selectedMatchId, setSelectedMatchId] = useState<string | null>(null);
@@ -367,7 +368,7 @@ function EventsTab({ matchId }: { matchId: string }) {
                     </div>
                 ) : (
                     <div className="space-y-2">
-                        {events.map((event: any) => (
+                        {events.map((event: BingoEvent) => (
                             <div
                                 key={event.id}
                                 className="border p-4 rounded-lg flex items-start justify-between"

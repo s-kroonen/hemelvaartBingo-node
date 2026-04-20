@@ -1,21 +1,21 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
-import { Event } from "./event.schema";
+import { Model, Types } from 'mongoose';
+import { BingoEvent } from './event.schema';
 
 @Injectable()
 export class EventRepository {
-    constructor(@InjectModel(Event.name) private model: Model<Event>) {}
+  constructor(@InjectModel(BingoEvent.name) private model: Model<BingoEvent>) {}
 
-    create(data: Partial<Event>) {
-        return this.model.create(data);
-    }
+  async create(data: Partial<BingoEvent>) {
+    return this.model.create(data);
+  }
 
-    findByMatch(matchId: string) {
-        return this.model.find({ matchId });
-    }
+  async findByMatch(matchId: string | Types.ObjectId) {
+    return this.model.find({ matchId: matchId });
+  }
 
-    update(id: string, data: Partial<Event>) {
-        return this.model.findByIdAndUpdate(id, data, { new: true });
-    }
+  async update(id: string, data: Partial<BingoEvent>) {
+    return this.model.findByIdAndUpdate(id, data, { new: true });
+  }
 }
