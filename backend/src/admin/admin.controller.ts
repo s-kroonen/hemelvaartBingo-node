@@ -143,10 +143,10 @@ export class AdminController {
   // CARDS
   @Get('/users/:userId/card')
   getUserCard(@Param('userId') userId: string) {
-    return this.cardService.findByUserAndCurrentMatch(userId);
+    return this.service.findByUserAndCurrentMatch(userId);
   }
   @Post('users/:userId/card/regenerate')
   regenerateCard(@Param('userId') userId: string) {
-    return this.cardService.regenerateCard(userId);
+    return this.userService.regenerateCard(userId);
   }
 }

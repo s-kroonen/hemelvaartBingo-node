@@ -1,36 +1,73 @@
-import { Controller, Get, Put, Req, Res, UseGuards } from '@nestjs/common';
-import { FirebaseAuthGuard } from '../auth/firebase-auth.guard';
-import { UserService } from './user.service';
-import { matches } from 'class-validator';
+import {Body, Controller, Get, NotFoundException, Param, Put, Req, Res, UseGuards} from '@nestjs/common';
+import {FirebaseAuthGuard} from '../auth/firebase-auth.guard';
+import {UserService} from './user.service';
+import {MatchService} from "../matches/match.service";
+import {Types} from "mongoose";
 
 @Controller('users')
 export class UserController {
 
-  constructor(private service: UserService) {}
+    constructor(
+        private userService: UserService,
+        private matchService: MatchService) {
+    }
 
-  @UseGuards(FirebaseAuthGuard)
-  @Get('me')
-  async getProfile(@Req() req) {
-    const email = req.user.email;
+    @UseGuards(FirebaseAuthGuard)
+    @Get('me')
+    async getProfile(@Req() req) {
+        const email = req.user.email;
 
-    const user = await this.service.createIfNotExists(email);
-    return user;
-  }
-  @Put('me')
-  async updateProfile(@Req() req) {
-    const email = req.user.email;
+        const user = await this.userService.createIfNotExists(email);
+        return user;
+    }
 
-    const user = await this.service.createIfNotExists(email);
-    return user;
-  }
-  @UseGuards(FirebaseAuthGuard)
-  @Put("current-match")
-  async updateCurrentMatch(@Req() req)  {
-    const email = req.user.email;
-    const user = await this.service.createIfNotExists(email);
-    const match = await this.service.updateCurrentMatch(user.id, req.body.matchId);
-    return match;
+    @Put('me')
+    async updateProfile(@Req() req) {
+        const email = req.user.email;
 
-  }
+        const user = await this.userService.createIfNotExists(email);
+        return user;
+    }
+
+    @UseGuards(FirebaseAuthGuard)
+    @Put("me/current-match")
+    async updateCurrentMatch(@Req() req, @Body() body: { matchId: string }) {
+        const email = req.user.email;
+        const user = await this.userService.createIfNotExists(email);
+
+        return this.userService.updateCurrentMatch(user.id, body.matchId);
+    }
+
+    @UseGuards(FirebaseAuthGuard)
+    @Get('me/current-match')
+    async getCurrentMatchContext(@Req() req) {
+        const email = req.user.email;
+        const user = await this.userService.findById(email);
+        if (!user) throw new NotFoundException('User not found');
+
+        return this.userService.getCurrentMatchContext(user.id);
+    }
+    @UseGuards(FirebaseAuthGuard)
+    @Get('me/matches')
+    async getMyMatches(@Req() req) {
+        const email = req.user.email;
+
+        const user = await this.userService.findByEmail(email);
+        if (!user) throw new NotFoundException('User not found');
+        const userId = new Types.ObjectId(user._id);
+        return this.matchService.getUserMatches(userId);
+    }
+
+    @UseGuards(FirebaseAuthGuard)
+    @Get('me/matches/:id')
+    async getMatchContext(@Param('id') matchId: string, @Req() req) {
+        const email = req.user.email;
+
+        const user = await this.userService.findByEmail(email);
+
+        if (!user) throw new NotFoundException('User not found');
+        return this.userService.getMatchContext(user._id,matchId);
+
+    }
 
 }

@@ -1,12 +1,19 @@
-import {Injectable, Logger} from '@nestjs/common';
+import {Injectable, Logger, NotFoundException} from '@nestjs/common';
 import {UserRepository} from './user.repository';
-import { Types } from 'mongoose';
-import { CreateUserDto, Role, UpdateUserDto } from './user.schema';
+import {Types} from 'mongoose';
+import {CreateUserDto, Role, UpdateUserDto} from './user.schema';
+import {MatchService} from "../matches/match.service";
+import {CardService} from "../cards/card.service";
+import {generateBingoCells} from "../shared/bingo.util";
 
 @Injectable()
 export class UserService {
-    constructor(private repo: UserRepository) {
+    constructor(
+        private repo: UserRepository,
+        private matchService: MatchService,
+        private cardService: CardService,) {
     }
+
     async updateCurrentMatch(userId: string, matchId: string) {
         return this.repo.findByIdAndUpdate(
             userId,
@@ -35,9 +42,9 @@ export class UserService {
         return this.repo.findByIdAndUpdate(
             userId,
             {
-                $addToSet: { roles: role },
+                $addToSet: {roles: role},
             },
-            { new: true },
+            {new: true},
         );
     }
 
@@ -46,51 +53,133 @@ export class UserService {
             userId,
             {
                 $addToSet: {
-                    roles: { $each: roles },
+                    roles: {$each: roles},
                 },
             },
-            { new: true },
+            {new: true},
         );
     }
+
     async removeRole(userId: string, role: Role) {
         return this.repo.findByIdAndUpdate(
             userId,
             {
-                $pull: { roles: role },
+                $pull: {roles: role},
             },
-            { new: true },
+            {new: true},
         );
     }
 
-  async findByEmail(userEmail: string) {
-      return this.repo.findByEmail(userEmail);
-  }
+    async findByEmail(userEmail: string) {
+        return this.repo.findByEmail(userEmail);
+    }
 
-  async getUser(id: string) {
-    return this.repo.findById(id);
-  }
+    async getUser(id: string) {
+        return this.repo.findById(id);
+    }
 
-  async getUsers() {
-    return this.repo.findAll();
-  }
+    async getUsers() {
+        return this.repo.findAll();
+    }
 
-  async createUser(dto: CreateUserDto) {
-    return this.repo.create(dto);
-  }
+    async createUser(dto: CreateUserDto) {
+        return this.repo.create(dto);
+    }
 
-  async updateUser(id: string, dto: UpdateUserDto) {
-    return this.repo.findByIdAndUpdate(id, dto);
-  }
+    async updateUser(id: string, dto: UpdateUserDto) {
+        return this.repo.findByIdAndUpdate(id, dto);
+    }
 
-  async deleteUser(id: string) {
-    return this.repo.delete(id)
-  }
+    async deleteUser(id: string) {
+        return this.repo.delete(id)
+    }
 
-  async findById(userId: string) {
-    return this.repo.findById(userId);
-  }
+    async findById(userId: string | Types.ObjectId) {
+        return this.repo.findById(userId);
+    }
 
-  async getUserByRole(role: string) {
-    return this.repo.findByRole(role);
-  }
+    async getUserByRole(role: string) {
+        return this.repo.findByRole(role);
+    }
+
+    // async getCurrentMatchContext(id: any) {
+    //     return this.userContextService.getCurrentMatchContext(id);
+    // }
+    async getCurrentMatchContext(userId: string) {
+        const user = await this.repo.findById(userId);
+        if (!user) throw new NotFoundException('User not found');
+
+        if (!user.currentMatchID) {
+            return {
+                match: null,
+                card: null,
+                awards: [],
+                roleInMatch: null,
+            };
+        }
+
+        const match = await this.matchService.findById(user.currentMatchID);
+        if (!match) throw new NotFoundException('Match not found');
+
+        const card = await this.cardService.findByUserAndMatch(
+            user._id,
+            match._id,
+        );
+
+        const isMaster = match.masters.some(id => id.equals(user._id));
+
+        return {
+            match,
+            card,
+            roleInMatch: isMaster ? 'master' : 'player',
+        };
+    }
+
+    async getMatchContext(userId: any, matchId: string) {
+        const user = await this.repo.findById(userId);
+        if (!user) throw new NotFoundException('User not found');
+
+        if (!user.currentMatchID) {
+            return {
+                match: null,
+                card: null,
+                awards: [],
+                roleInMatch: null,
+            };
+        }
+
+        const match = await this.matchService.findById(matchId);
+        if (!match) throw new NotFoundException('Match not found');
+
+        const card = await this.cardService.findByUserAndMatch(
+            user._id,
+            match._id,
+        );
+
+        const isMaster = match.masters.some(id => id.equals(user._id));
+
+        return {
+            match,
+            card,
+            roleInMatch: isMaster ? 'master' : 'player',
+        };
+    }
+    async regenerateCard(userId: string) {
+        const user = await this.repo.findById(userId);
+        if (!user) throw new NotFoundException('User does not exist');
+
+        const cards = await this.cardService.findByUser(userId);
+        if (!cards) throw new NotFoundException('User doesnt have cards');
+
+        const currentCard = cards.find(dto => dto.matchId === user.currentMatchID);
+
+        if (!currentCard) throw new NotFoundException('Card does not exist');
+
+        const match = await this.matchService.findById(user.currentMatchID);
+        if (!match) throw new NotFoundException('Match not found');
+
+        const cells = generateBingoCells(match.cardSize);
+
+        return this.cardService.updateCard(currentCard.id, { cells });
+    }
 }

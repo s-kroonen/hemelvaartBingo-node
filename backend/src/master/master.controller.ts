@@ -12,10 +12,10 @@ import {Role} from "../users/user.schema";
 export class MasterController {
     constructor(private cardService: CardService, private matchService : MatchService) {}
 
-    @Post('cards/:id/regenerate')
-    regenerate(@Param('id') id: string, @Body() body) {
-        return this.cardService.regenerateCard(id);
-    }
+    // @Post('cards/:id/regenerate')
+    // regenerate(@Param('id') id: string, @Body() body) {
+    //     return this.cardService.regenerateCard(id);
+    // }
     @Get('matches')
     getMyMatches(@Req() req) {
         return this.matchService.getMatchesByMaster(req.user.dbUser.id);
