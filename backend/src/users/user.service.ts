@@ -164,22 +164,30 @@ export class UserService {
             roleInMatch: isMaster ? 'master' : 'player',
         };
     }
-    async regenerateCard(userId: string) {
+    async regenerateCard(userId: string, matchId?: string) {
         const user = await this.repo.findById(userId);
         if (!user) throw new NotFoundException('User does not exist');
 
-        const cards = await this.cardService.findByUser(userId);
-        if (!cards) throw new NotFoundException('User doesnt have cards');
+        const effectiveMatchId = matchId ?? user.currentMatchID;
+        if (!effectiveMatchId)
+            throw new NotFoundException('No match specified');
 
-        const currentCard = cards.find(dto => dto.matchId === user.currentMatchID);
-
-        if (!currentCard) throw new NotFoundException('Card does not exist');
-
-        const match = await this.matchService.findById(user.currentMatchID);
+        const match = await this.matchService.findById(effectiveMatchId);
         if (!match) throw new NotFoundException('Match not found');
+
+        const card = await this.cardService.findByUserAndMatch(
+            user._id,
+            match._id,
+        );
+
+        if (!card)
+            throw new NotFoundException(
+                `Card not found for user ${userId} and match ${effectiveMatchId}`,
+            );
 
         const cells = generateBingoCells(match.cardSize);
 
-        return this.cardService.updateCard(currentCard.id, { cells });
+        return this.cardService.updateCard(card.id, { cells });
     }
+
 }

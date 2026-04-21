@@ -28,7 +28,7 @@ import { toast } from "sonner";
 import { Calendar, Users, ListTodo, Mail, Trash2, Edit2, Plus, RefreshCw, Save, X } from "lucide-react";
 import { Textarea } from "../components/ui/textarea";
 import { format } from "date-fns";
-import type {BingoEvent} from "@/types";
+import type {BingoEvent, Invite, Match, User} from "@/types";
 
 export default function BingoMasterPage() {
     const [selectedMatchId, setSelectedMatchId] = useState<string | null>(null);
@@ -81,7 +81,7 @@ export default function BingoMasterPage() {
                             <SelectValue placeholder="Select a match to manage" />
                         </SelectTrigger>
                         <SelectContent>
-                            {matches.map((match: any) => (
+                            {matches.map((match: Match) => (
                                 <SelectItem key={match.id} value={match.id}>
                                     {match.name}
                                 </SelectItem>
@@ -537,13 +537,13 @@ function ParticipantsTab({ matchId }: { matchId: string }) {
                     </div>
                 ) : (
                     <div className="space-y-2">
-                        {participants.map((participant: any) => (
+                        {participants.map((participant: User) => (
                             <div
                                 key={participant.id}
                                 className="border p-4 rounded-lg flex items-center justify-between"
                             >
                                 <div>
-                                    <div className="font-medium">{participant.name || participant.email}</div>
+                                    <div className="font-medium">{participant.username || participant.email}</div>
                                     <div className="text-sm text-gray-600">{participant.email}</div>
                                     <div className="text-sm text-gray-500 mt-1">
                                         Score: <span className="font-medium">{participant.score || 0}</span>
@@ -561,7 +561,7 @@ function ParticipantsTab({ matchId }: { matchId: string }) {
                                             <AlertDialogHeader>
                                                 <AlertDialogTitle>Regenerate Card</AlertDialogTitle>
                                                 <AlertDialogDescription>
-                                                    This will generate a new bingo card for {participant.name || participant.email}. Their current progress will be lost. Continue?
+                                                    This will generate a new bingo card for {participant.username || participant.email}. Their current progress will be lost. Continue?
                                                 </AlertDialogDescription>
                                             </AlertDialogHeader>
                                             <AlertDialogFooter>
@@ -584,7 +584,7 @@ function ParticipantsTab({ matchId }: { matchId: string }) {
                                             <AlertDialogHeader>
                                                 <AlertDialogTitle>Remove Participant</AlertDialogTitle>
                                                 <AlertDialogDescription>
-                                                    Are you sure you want to remove {participant.name || participant.email} from this match?
+                                                    Are you sure you want to remove {participant.username || participant.email} from this match?
                                                 </AlertDialogDescription>
                                             </AlertDialogHeader>
                                             <AlertDialogFooter>
@@ -698,13 +698,13 @@ function InvitesTab({ matchId }: { matchId: string }) {
                     </div>
                 ) : (
                     <div className="space-y-2">
-                        {invites.map((invite: any) => (
+                        {invites.map((invite: Invite) => (
                             <div
                                 key={invite.id}
                                 className="border p-4 rounded-lg flex items-center justify-between"
                             >
                                 <div>
-                                    <div className="font-medium">{invite.email}</div>
+                                    <div className="font-medium">{invite.name}</div>
                                     <div className="text-sm text-gray-500 mt-1">
                                         Token: <code className="bg-gray-100 px-2 py-1 rounded text-xs">{invite.token}</code>
                                     </div>

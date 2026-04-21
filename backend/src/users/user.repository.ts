@@ -1,43 +1,45 @@
-import { Injectable, Logger } from '@nestjs/common';
-import { InjectModel } from '@nestjs/mongoose';
+import {Injectable, Logger} from '@nestjs/common';
+import {InjectModel} from '@nestjs/mongoose';
 import {Model, Types} from 'mongoose';
-import { User } from './user.schema';
+import {User} from './user.schema';
 
 @Injectable()
 export class UserRepository {
-  private readonly logger = new Logger(UserRepository.name);
-  constructor(@InjectModel(User.name) private userModel: Model<User>) {}
+    private readonly logger = new Logger(UserRepository.name);
 
-  async findByEmail(email: string) {
-    return this.userModel.findOne({ email });
-  }
+    constructor(@InjectModel(User.name) private userModel: Model<User>) {
+    }
 
-  async create(user: Partial<User>) {
-    return this.userModel.create(user);
-  }
+    async findByEmail(email: string) {
+        return this.userModel.findOne({email});
+    }
 
-  async findById(id: string | Types.ObjectId) {
-    return this.userModel.findById(id);
-  }
+    async create(user: Partial<User>) {
+        return this.userModel.create(user);
+    }
 
-  async findByIdAndUpdate(
-    userId: string,
-    update: any, // allow Mongo operators
-    options: { new: boolean } = { new: true },
-  ) {
-    this.logger.log(`update user with id and data ${userId}  ${update}`);
-    return this.userModel.findByIdAndUpdate(userId, update, options);
-  }
+    async findById(id: string | Types.ObjectId) {
+        return this.userModel.findById(id);
+    }
 
-  async findAll() {
-    return this.userModel.find();
-  }
+    async findByIdAndUpdate(
+        userId: string,
+        update: any, // allow Mongo operators
+        options: { new: boolean } = {new: true},
+    ) {
+        this.logger.log(`update user with id and data ${userId}  ${update}`);
+        return this.userModel.findByIdAndUpdate(userId, update, options);
+    }
 
-  async delete(id: string) {
-    return this.userModel.findByIdAndDelete(id);
-  }
+    async findAll() {
+        return this.userModel.find();
+    }
 
-  async findByRole(role: string) {
-    return this.userModel.find({roles: role});
-  }
+    async delete(id: string) {
+        return this.userModel.findByIdAndDelete(id);
+    }
+
+    async findByRole(role: string) {
+        return this.userModel.find({roles: role});
+    }
 }

@@ -54,7 +54,7 @@ export class UserController {
         const user = await this.userService.createIfNotExists(email);
 
         const userId = new Types.ObjectId(user._id);
-        return this.matchService.getUserMatches(userId);
+        return this.matchService.getPlayerMatches(userId);
     }
 
     @UseGuards(FirebaseAuthGuard)

@@ -7,7 +7,10 @@ export interface User {
     currentMatchId: string | null;
     cardId?: string;
     awards?: Award[];
+    score?: number;
 }
+
+
 export interface BingoEvent {
     id: string;
     matchId: string;
@@ -95,7 +98,7 @@ export interface Invite {
     matchId: string;
     token: string;
     isActive: boolean;
-    expiresAt: string; // Match end date
+    expiresAt: string;
     createdAt: string;
     metadata?: InviteMetadata;
 }

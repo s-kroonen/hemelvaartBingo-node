@@ -26,8 +26,6 @@ export class User {
   @Prop({ type: Types.ObjectId, ref: 'Match' })
   currentMatchID: Types.ObjectId;
 
-  @Prop({ type: [{ type: Types.ObjectId, ref: 'Card' }] })
-  cards: Types.ObjectId[];
 
   @Prop({
     type: [String],

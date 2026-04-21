@@ -5,13 +5,15 @@ import {MatchModule} from "../matches/match.module";
 import {MasterController} from "./master.controller";
 import {CardModule} from "../cards/card.module";
 import {EventModule} from "../events/event.module";
+import {InviteModule} from "../invites/invite.module";
 
 @Module({
     imports: [
         CardModule,
         UserModule,
         MatchModule,
-        EventModule
+        EventModule,
+        InviteModule,
     ],
     controllers: [MasterController],
 })
