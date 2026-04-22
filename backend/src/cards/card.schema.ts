@@ -1,11 +1,9 @@
 import { Types } from 'mongoose';
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
+import { UserSchema } from '../users/user.schema';
 
 @Schema({ timestamps: true })
 export class BingoCell {
-  @Prop({ required: true })
-  id: string;
-
   @Prop({ required: true })
   value: string;
 
@@ -17,6 +15,13 @@ export class BingoCell {
 }
 
 const BingoCellSchema = SchemaFactory.createForClass(BingoCell);
+BingoCellSchema.set('toJSON', {
+  virtuals: true,
+  versionKey: false,
+  transform: function (doc, ret) {
+    delete (ret as any)._id; // Remove the original _id
+  },
+});
 
 @Schema({ timestamps: true })
 export class Card {
@@ -31,3 +36,10 @@ export class Card {
 }
 
 export const CardSchema = SchemaFactory.createForClass(Card);
+CardSchema.set('toJSON', {
+  virtuals: true,
+  versionKey: false,
+  transform: function (doc, ret) {
+    delete (ret as any)._id; // Remove the original _id
+  },
+});

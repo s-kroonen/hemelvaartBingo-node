@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
 import { Card } from './card.schema';
@@ -29,11 +29,7 @@ export class CardRepository {
   async updateCard(cardId: string | Types.ObjectId, update: Partial<Card>) {
     return this.model.findByIdAndUpdate(cardId, update, { new: true });
   }
-  async updateCell(
-    cardId: string,
-    cellId: string,
-    isChecked: boolean,
-  ) {
+  async updateCell(cardId: string, cellId: string, isChecked: boolean) {
     return this.model.findOneAndUpdate(
       {
         _id: cardId,
@@ -47,6 +43,34 @@ export class CardRepository {
       { new: true },
     );
   }
+
+  async updateCellState(
+    userId: Types.ObjectId,
+    matchId: Types.ObjectId,
+    cellId: string,
+    isChecked: boolean,
+  ) {
+    const updated = await this.model.findOneAndUpdate(
+      {
+        userId,
+        matchId,
+        'cells._id': new Types.ObjectId(cellId),
+      },
+      {
+        $set: {
+          'cells.$.isChecked': isChecked,
+        },
+      },
+      { new: true },
+    );
+
+    if (!updated) {
+      throw new NotFoundException('Card or cell not found');
+    }
+
+    return updated;
+  }
+
   async delete(cardId: string | Types.ObjectId) {
     return this.model.findByIdAndDelete(cardId);
   }

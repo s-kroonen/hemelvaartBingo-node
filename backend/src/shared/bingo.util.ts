@@ -33,7 +33,6 @@ export function generateBingoCells(size: number): BingoCell[] {
       const isFree = row === mid && col === mid;
 
       cells.push({
-        id: randomUUID(),
         value: isFree ? 'FREE' : String(rows[row][col]),
         isChecked: isFree,
         position: position++,
