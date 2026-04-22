@@ -51,11 +51,17 @@ EventSchema.set('toJSON', {
 export class CreateEventDto {
   @IsString()
   name: string;
+
   @IsOptional()
   @IsString()
   description: string;
+
   @IsOptional()
   metadata: Record<string, any>;
+
+  @IsBoolean()
+  autoCall: boolean;
+
 }
 export class UpdateEventDto {
   @IsOptional()

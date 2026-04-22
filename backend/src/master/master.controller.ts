@@ -34,10 +34,6 @@ export class MasterController {
     ) {
     }
 
-    // @Post('cards/:id/regenerate')
-    // regenerate(@Param('id') id: string, @Body() body) {
-    //     return this.cardService.regenerateCard(id);
-    // }
     @Get('matches')
     getMyMatches(@Req() req) {
         return this.matchService.getMatchesByMaster(req.user.dbUser.id);
@@ -69,6 +65,7 @@ export class MasterController {
         return this.matchService.updateMatchDates(match._id, dto.startDate, dto.endDate);
     }
 
+    // Events
     @Get('matches/:matchId/events')
     async getMyMatchEvents(@Param('matchId') matchId: string) {
         const match = await this.matchService.findById(matchId);
@@ -98,6 +95,32 @@ export class MasterController {
         const event = await this.eventService.findById(eventId);
         if (!event) throw new NotFoundException(`Event with id ${eventId} not found`);
         return this.eventService.updateForMatch(dto, match._id, event._id);
+    }
+
+    @Post('matches/:matchId/events/:eventId/call')
+    async callEventForMatch(
+        @Param('matchId') matchId: string,
+        @Param('eventId') eventId: string,
+        @Body() dto: UpdateEventDto,
+    ) {
+        const match = await this.matchService.findById(matchId);
+        if (!match) throw new NotFoundException(`Match with id ${matchId} not found`);
+        const event = await this.eventService.findById(eventId);
+        if (!event) throw new NotFoundException(`Event with id ${eventId} not found`);
+        // return this.eventService.updateForMatch(dto, match._id, event._id);
+    }
+
+    @Post('matches/:matchId/events/:eventId/recall')
+    async recallEventForMatch(
+        @Param('matchId') matchId: string,
+        @Param('eventId') eventId: string,
+        @Body() dto: UpdateEventDto,
+    ) {
+        const match = await this.matchService.findById(matchId);
+        if (!match) throw new NotFoundException(`Match with id ${matchId} not found`);
+        const event = await this.eventService.findById(eventId);
+        if (!event) throw new NotFoundException(`Event with id ${eventId} not found`);
+        // return this.eventService.updateForMatch(dto, match._id, event._id);
     }
 
     @Delete('matches/:matchId/events/:eventId')

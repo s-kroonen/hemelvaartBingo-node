@@ -102,11 +102,6 @@ export interface Invite {
     createdAt: string;
     metadata?: InviteMetadata;
 }
-export const InviteStatus = {
-    PENDING: "PENDING",
-    ACCEPTED: "ACCEPTED",
-    EXPIRED: "EXPIRED",
-}
 export interface InviteMetadata {
     watchAdBeforeJoin?: boolean;
     joinAsRole?: "user" | "master" | "admin";
@@ -115,4 +110,3 @@ export interface InviteMetadata {
     // allow future/unknown fields without breaking UI
     [key: string]: any;
 }
-export type InviteStatus = typeof InviteStatus[keyof typeof InviteStatus];

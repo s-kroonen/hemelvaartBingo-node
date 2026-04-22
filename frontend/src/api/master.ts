@@ -83,3 +83,32 @@ export const deleteInvite = async (matchId: string, inviteId: string) => {
     const response = await api.delete(`/master/matches/${matchId}/invites/${inviteId}`);
     return response.data;
 };
+
+// Call event (assign random number in backend)
+export const callEvent = async (matchId: string, eventId: string) => {
+    const response = await api.post(`/master/matches/${matchId}/events/${eventId}/call`);
+    return response.data;
+};
+
+// Recall event (remove number)
+export const recallEvent = async (matchId: string, eventId: string) => {
+    const response = await api.post(`/master/matches/${matchId}/events/${eventId}/recall`);
+    return response.data;
+};
+
+// Update invite
+export const updateInvite = async (
+    matchId: string,
+    inviteId: string,
+    data: Partial<{
+        name: string;
+        isActive: boolean;
+        metadata: any;
+    }>
+) => {
+    const response = await api.put(
+        `/master/matches/${matchId}/invites/${inviteId}`,
+        data
+    );
+    return response.data;
+};

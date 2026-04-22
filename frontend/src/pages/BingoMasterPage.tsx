@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import {useState} from "react";
+import {useQuery, useMutation, useQueryClient} from "@tanstack/react-query";
 import {
     getMasterMatches,
     getMatchDetails,
@@ -14,34 +14,45 @@ import {
     removeParticipant,
     regenerateUserCard,
     getMatchInvites,
-    deleteInvite,
+    deleteInvite, callEvent, recallEvent, updateInvite,
 } from "../api/master";
-import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card";
-import { Button } from "../components/ui/button";
-import { Input } from "../components/ui/input";
-import { Label } from "../components/ui/label";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "../components/ui/tabs";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "../components/ui/dialog";
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "../components/ui/alert-dialog";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../components/ui/select";
-import { toast } from "sonner";
-import { Calendar, Users, ListTodo, Mail, Trash2, Edit2, Plus, RefreshCw, Save, X } from "lucide-react";
-import { Textarea } from "../components/ui/textarea";
-import { format } from "date-fns";
+import {Card, CardContent, CardHeader, CardTitle} from "../components/ui/card";
+import {Button} from "../components/ui/button";
+import {Input} from "../components/ui/input";
+import {Label} from "../components/ui/label";
+import {Tabs, TabsContent, TabsList, TabsTrigger} from "../components/ui/tabs";
+import {Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter} from "../components/ui/dialog";
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+    AlertDialogTrigger
+} from "../components/ui/alert-dialog";
+import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from "../components/ui/select";
+import {toast} from "sonner";
+import {Calendar, Users, ListTodo, Mail, Trash2, Edit2, Plus, RefreshCw, Save, X} from "lucide-react";
+import {Textarea} from "../components/ui/textarea";
+import {format} from "date-fns";
 import type {BingoEvent, Invite, Match, User} from "@/types";
+import {Switch} from "@/components/ui/switch.tsx";
 
 export default function BingoMasterPage() {
     const [selectedMatchId, setSelectedMatchId] = useState<string | null>(null);
     // const queryClient = useQueryClient();
 
     // Fetch matches where user is master
-    const { data: matches, isLoading: matchesLoading } = useQuery({
+    const {data: matches, isLoading: matchesLoading} = useQuery({
         queryKey: ["master-matches"],
         queryFn: getMasterMatches,
     });
 
     // Fetch selected match details
-    const { data: matchDetails } = useQuery({
+    const {data: matchDetails} = useQuery({
         queryKey: ["match-details", selectedMatchId],
         queryFn: () => getMatchDetails(selectedMatchId!),
         enabled: !!selectedMatchId,
@@ -59,7 +70,7 @@ export default function BingoMasterPage() {
         return (
             <div className="flex items-center justify-center h-full">
                 <div className="text-gray-500 text-center">
-                    <Calendar className="w-16 h-16 mx-auto mb-4 text-gray-400" />
+                    <Calendar className="w-16 h-16 mx-auto mb-4 text-gray-400"/>
                     <p>You are not a master of any matches yet.</p>
                 </div>
             </div>
@@ -78,7 +89,7 @@ export default function BingoMasterPage() {
                 <CardContent>
                     <Select value={selectedMatchId || ""} onValueChange={setSelectedMatchId}>
                         <SelectTrigger className="w-full">
-                            <SelectValue placeholder="Select a match to manage" />
+                            <SelectValue placeholder="Select a match to manage"/>
                         </SelectTrigger>
                         <SelectContent>
                             {matches.map((match: Match) => (
@@ -96,37 +107,37 @@ export default function BingoMasterPage() {
                 <Tabs defaultValue="details" className="space-y-4">
                     <TabsList className="grid w-full grid-cols-4">
                         <TabsTrigger value="details">
-                            <Calendar className="w-4 h-4 mr-2" />
+                            <Calendar className="w-4 h-4 mr-2"/>
                             Details
                         </TabsTrigger>
                         <TabsTrigger value="events">
-                            <ListTodo className="w-4 h-4 mr-2" />
+                            <ListTodo className="w-4 h-4 mr-2"/>
                             Events
                         </TabsTrigger>
                         <TabsTrigger value="participants">
-                            <Users className="w-4 h-4 mr-2" />
+                            <Users className="w-4 h-4 mr-2"/>
                             Participants
                         </TabsTrigger>
                         <TabsTrigger value="invites">
-                            <Mail className="w-4 h-4 mr-2" />
+                            <Mail className="w-4 h-4 mr-2"/>
                             Invites
                         </TabsTrigger>
                     </TabsList>
 
                     <TabsContent value="details">
-                        <MatchDetailsTab matchId={selectedMatchId} matchDetails={matchDetails} />
+                        <MatchDetailsTab matchId={selectedMatchId} matchDetails={matchDetails}/>
                     </TabsContent>
 
                     <TabsContent value="events">
-                        <EventsTab matchId={selectedMatchId} />
+                        <EventsTab matchId={selectedMatchId}/>
                     </TabsContent>
 
                     <TabsContent value="participants">
-                        <ParticipantsTab matchId={selectedMatchId} />
+                        <ParticipantsTab matchId={selectedMatchId}/>
                     </TabsContent>
 
                     <TabsContent value="invites">
-                        <InvitesTab matchId={selectedMatchId} />
+                        <InvitesTab matchId={selectedMatchId}/>
                     </TabsContent>
                 </Tabs>
             )}
@@ -135,7 +146,7 @@ export default function BingoMasterPage() {
 }
 
 // Match Details Tab Component
-function MatchDetailsTab({ matchId, matchDetails }: { matchId: string; matchDetails: any }) {
+function MatchDetailsTab({matchId, matchDetails}: { matchId: string; matchDetails: any }) {
     const [isEditing, setIsEditing] = useState(false);
     const [name, setName] = useState("");
     const [startDate, setStartDate] = useState("");
@@ -145,8 +156,8 @@ function MatchDetailsTab({ matchId, matchDetails }: { matchId: string; matchDeta
     const updateNameMutation = useMutation({
         mutationFn: (newName: string) => updateMatchName(matchId, newName),
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ["match-details", matchId] });
-            queryClient.invalidateQueries({ queryKey: ["master-matches"] });
+            queryClient.invalidateQueries({queryKey: ["match-details", matchId]});
+            queryClient.invalidateQueries({queryKey: ["master-matches"]});
             toast.success("Match name updated successfully");
             setIsEditing(false);
         },
@@ -156,10 +167,10 @@ function MatchDetailsTab({ matchId, matchDetails }: { matchId: string; matchDeta
     });
 
     const updateDatesMutation = useMutation({
-        mutationFn: ({ start, end }: { start: string; end: string }) =>
+        mutationFn: ({start, end}: { start: string; end: string }) =>
             updateMatchDates(matchId, start, end),
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ["match-details", matchId] });
+            queryClient.invalidateQueries({queryKey: ["match-details", matchId]});
             toast.success("Match dates updated successfully");
         },
         onError: () => {
@@ -175,7 +186,7 @@ function MatchDetailsTab({ matchId, matchDetails }: { matchId: string; matchDeta
 
     const handleUpdateDates = () => {
         if (startDate && endDate) {
-            updateDatesMutation.mutate({ start: startDate, end: endDate });
+            updateDatesMutation.mutate({start: startDate, end: endDate});
         }
     };
 
@@ -200,7 +211,7 @@ function MatchDetailsTab({ matchId, matchDetails }: { matchId: string; matchDeta
                                 placeholder="Enter match name"
                             />
                             <Button onClick={handleUpdateName} disabled={updateNameMutation.isPending}>
-                                <Save className="w-4 h-4 mr-2" />
+                                <Save className="w-4 h-4 mr-2"/>
                                 Save
                             </Button>
                             <Button
@@ -210,7 +221,7 @@ function MatchDetailsTab({ matchId, matchDetails }: { matchId: string; matchDeta
                                     setName("");
                                 }}
                             >
-                                <X className="w-4 h-4" />
+                                <X className="w-4 h-4"/>
                             </Button>
                         </div>
                     ) : (
@@ -224,7 +235,7 @@ function MatchDetailsTab({ matchId, matchDetails }: { matchId: string; matchDeta
                                     setIsEditing(true);
                                 }}
                             >
-                                <Edit2 className="w-4 h-4" />
+                                <Edit2 className="w-4 h-4"/>
                             </Button>
                         </div>
                     )}
@@ -287,12 +298,12 @@ function MatchDetailsTab({ matchId, matchDetails }: { matchId: string; matchDeta
 }
 
 // Events Tab Component
-function EventsTab({ matchId }: { matchId: string }) {
+function EventsTab({matchId}: { matchId: string }) {
     const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
     const [editingEvent, setEditingEvent] = useState<any>(null);
     const queryClient = useQueryClient();
 
-    const { data: events, isLoading } = useQuery({
+    const {data: events, isLoading} = useQuery({
         queryKey: ["match-events", matchId],
         queryFn: () => getMatchEvents(matchId),
     });
@@ -301,7 +312,7 @@ function EventsTab({ matchId }: { matchId: string }) {
         mutationFn: (event: { name: string; description?: string }) =>
             createEvent(matchId, event),
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ["match-events", matchId] });
+            queryClient.invalidateQueries({queryKey: ["match-events", matchId]});
             toast.success("Event created successfully");
             setIsCreateDialogOpen(false);
         },
@@ -311,10 +322,10 @@ function EventsTab({ matchId }: { matchId: string }) {
     });
 
     const updateMutation = useMutation({
-        mutationFn: ({ eventId, event }: { eventId: string; event: any }) =>
+        mutationFn: ({eventId, event}: { eventId: string; event: any }) =>
             updateEvent(matchId, eventId, event),
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ["match-events", matchId] });
+            queryClient.invalidateQueries({queryKey: ["match-events", matchId]});
             toast.success("Event updated successfully");
             setEditingEvent(null);
         },
@@ -326,14 +337,30 @@ function EventsTab({ matchId }: { matchId: string }) {
     const deleteMutation = useMutation({
         mutationFn: (eventId: string) => deleteEvent(matchId, eventId),
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ["match-events", matchId] });
+            queryClient.invalidateQueries({queryKey: ["match-events", matchId]});
             toast.success("Event deleted successfully");
         },
         onError: () => {
             toast.error("Failed to delete event");
         },
     });
+    const callMutation = useMutation({
+        mutationFn: (eventId: string) => callEvent(matchId, eventId),
+        onSuccess: () => {
+            queryClient.invalidateQueries({queryKey: ["match-events", matchId]});
+            toast.success("Event called");
+        },
+        onError: () => toast.error("Failed to call event"),
+    });
 
+    const recallMutation = useMutation({
+        mutationFn: (eventId: string) => recallEvent(matchId, eventId),
+        onSuccess: () => {
+            queryClient.invalidateQueries({queryKey: ["match-events", matchId]});
+            toast.success("Event recalled");
+        },
+        onError: () => toast.error("Failed to recall event"),
+    });
     if (isLoading) {
         return <div className="text-gray-500">Loading events...</div>;
     }
@@ -345,7 +372,7 @@ function EventsTab({ matchId }: { matchId: string }) {
                 <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
                     <DialogTrigger asChild>
                         <Button>
-                            <Plus className="w-4 h-4 mr-2" />
+                            <Plus className="w-4 h-4 mr-2"/>
                             Add Event
                         </Button>
                     </DialogTrigger>
@@ -363,7 +390,7 @@ function EventsTab({ matchId }: { matchId: string }) {
             <CardContent>
                 {!events || events.length === 0 ? (
                     <div className="text-center py-8 text-gray-500">
-                        <ListTodo className="w-12 h-12 mx-auto mb-3 text-gray-400" />
+                        <ListTodo className="w-12 h-12 mx-auto mb-3 text-gray-400"/>
                         <p>No events yet. Create your first event!</p>
                     </div>
                 ) : (
@@ -374,12 +401,39 @@ function EventsTab({ matchId }: { matchId: string }) {
                                 className="border p-4 rounded-lg flex items-start justify-between"
                             >
                                 <div className="flex-1">
-                                    <div className="font-medium">{event.name}</div>
+                                    <div className="font-medium flex items-center gap-2">
+                                        {event.name}
+                                        {event.called && (
+                                            <span className="text-green-600 text-sm font-semibold">
+                                                • Called ({event.numbers})
+                                            </span>
+                                        )}
+                                    </div>
                                     {event.description && (
                                         <div className="text-sm text-gray-600 mt-1">
                                             {event.description}
                                         </div>
                                     )}
+                                </div>
+                                <div className="flex gap-2">
+                                    {!event.called ? (
+                                        <Button
+                                            size="sm"
+                                            onClick={() => callMutation.mutate(event.id)}
+                                        >
+                                            Call
+                                        </Button>
+                                    ) : (
+                                        <Button
+                                            size="sm"
+                                            variant="outline"
+                                            onClick={() => recallMutation.mutate(event.id)}
+                                        >
+                                            Recall ({event.numbers})
+                                        </Button>
+                                    )}
+
+                                    {/* existing edit/delete buttons */}
                                 </div>
                                 <div className="flex gap-2">
                                     <Dialog
@@ -392,7 +446,7 @@ function EventsTab({ matchId }: { matchId: string }) {
                                                 size="sm"
                                                 onClick={() => setEditingEvent(event)}
                                             >
-                                                <Edit2 className="w-4 h-4" />
+                                                <Edit2 className="w-4 h-4"/>
                                             </Button>
                                         </DialogTrigger>
                                         <DialogContent>
@@ -402,7 +456,7 @@ function EventsTab({ matchId }: { matchId: string }) {
                                             <EventForm
                                                 initialData={event}
                                                 onSubmit={(data) =>
-                                                    updateMutation.mutate({ eventId: event.id, event: data })
+                                                    updateMutation.mutate({eventId: event.id, event: data})
                                                 }
                                                 isLoading={updateMutation.isPending}
                                             />
@@ -411,14 +465,15 @@ function EventsTab({ matchId }: { matchId: string }) {
                                     <AlertDialog>
                                         <AlertDialogTrigger asChild>
                                             <Button variant="ghost" size="sm">
-                                                <Trash2 className="w-4 h-4 text-red-500" />
+                                                <Trash2 className="w-4 h-4 text-red-500"/>
                                             </Button>
                                         </AlertDialogTrigger>
                                         <AlertDialogContent>
                                             <AlertDialogHeader>
                                                 <AlertDialogTitle>Delete Event</AlertDialogTitle>
                                                 <AlertDialogDescription>
-                                                    Are you sure you want to delete this event? This action cannot be undone.
+                                                    Are you sure you want to delete this event? This action cannot be
+                                                    undone.
                                                 </AlertDialogDescription>
                                             </AlertDialogHeader>
                                             <AlertDialogFooter>
@@ -454,10 +509,11 @@ function EventForm({
 }) {
     const [name, setName] = useState(initialData?.name || "");
     const [description, setDescription] = useState(initialData?.description || "");
+    const [autoCall, setAutoCall] = useState(false);
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        onSubmit({ name, description });
+        onSubmit({name, description, autoCall})
     };
 
     return (
@@ -480,6 +536,14 @@ function EventForm({
                     rows={3}
                 />
             </div>
+            <div className="flex items-center gap-2">
+                <input
+                    type="checkbox"
+                    checked={autoCall}
+                    onChange={(e) => setAutoCall(e.target.checked)}
+                />
+                <Label>Call event immediately</Label>
+            </div>
             <DialogFooter>
                 <Button type="submit" disabled={isLoading || !name.trim()}>
                     {isLoading ? "Saving..." : "Save Event"}
@@ -490,10 +554,10 @@ function EventForm({
 }
 
 // Participants Tab Component
-function ParticipantsTab({ matchId }: { matchId: string }) {
+function ParticipantsTab({matchId}: { matchId: string }) {
     const queryClient = useQueryClient();
 
-    const { data: participants, isLoading } = useQuery({
+    const {data: participants, isLoading} = useQuery({
         queryKey: ["match-participants", matchId],
         queryFn: () => getMatchParticipants(matchId),
     });
@@ -501,7 +565,7 @@ function ParticipantsTab({ matchId }: { matchId: string }) {
     const regenerateMutation = useMutation({
         mutationFn: (userId: string) => regenerateUserCard(matchId, userId),
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ["match-participants", matchId] });
+            queryClient.invalidateQueries({queryKey: ["match-participants", matchId]});
             toast.success("Card regenerated successfully");
         },
         onError: () => {
@@ -512,7 +576,7 @@ function ParticipantsTab({ matchId }: { matchId: string }) {
     const removeMutation = useMutation({
         mutationFn: (userId: string) => removeParticipant(matchId, userId),
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ["match-participants", matchId] });
+            queryClient.invalidateQueries({queryKey: ["match-participants", matchId]});
             toast.success("Participant removed successfully");
         },
         onError: () => {
@@ -532,7 +596,7 @@ function ParticipantsTab({ matchId }: { matchId: string }) {
             <CardContent>
                 {!participants || participants.length === 0 ? (
                     <div className="text-center py-8 text-gray-500">
-                        <Users className="w-12 h-12 mx-auto mb-3 text-gray-400" />
+                        <Users className="w-12 h-12 mx-auto mb-3 text-gray-400"/>
                         <p>No participants yet.</p>
                     </div>
                 ) : (
@@ -553,7 +617,7 @@ function ParticipantsTab({ matchId }: { matchId: string }) {
                                     <AlertDialog>
                                         <AlertDialogTrigger asChild>
                                             <Button variant="outline" size="sm">
-                                                <RefreshCw className="w-4 h-4 mr-2" />
+                                                <RefreshCw className="w-4 h-4 mr-2"/>
                                                 Regenerate Card
                                             </Button>
                                         </AlertDialogTrigger>
@@ -561,7 +625,9 @@ function ParticipantsTab({ matchId }: { matchId: string }) {
                                             <AlertDialogHeader>
                                                 <AlertDialogTitle>Regenerate Card</AlertDialogTitle>
                                                 <AlertDialogDescription>
-                                                    This will generate a new bingo card for {participant.username || participant.email}. Their current progress will be lost. Continue?
+                                                    This will generate a new bingo card
+                                                    for {participant.username || participant.email}. Their current
+                                                    progress will be lost. Continue?
                                                 </AlertDialogDescription>
                                             </AlertDialogHeader>
                                             <AlertDialogFooter>
@@ -577,14 +643,15 @@ function ParticipantsTab({ matchId }: { matchId: string }) {
                                     <AlertDialog>
                                         <AlertDialogTrigger asChild>
                                             <Button variant="ghost" size="sm">
-                                                <Trash2 className="w-4 h-4 text-red-500" />
+                                                <Trash2 className="w-4 h-4 text-red-500"/>
                                             </Button>
                                         </AlertDialogTrigger>
                                         <AlertDialogContent>
                                             <AlertDialogHeader>
                                                 <AlertDialogTitle>Remove Participant</AlertDialogTitle>
                                                 <AlertDialogDescription>
-                                                    Are you sure you want to remove {participant.username || participant.email} from this match?
+                                                    Are you sure you want to
+                                                    remove {participant.username || participant.email} from this match?
                                                 </AlertDialogDescription>
                                             </AlertDialogHeader>
                                             <AlertDialogFooter>
@@ -609,12 +676,13 @@ function ParticipantsTab({ matchId }: { matchId: string }) {
 }
 
 // Invites Tab Component
-function InvitesTab({ matchId }: { matchId: string }) {
+function InvitesTab({matchId}: { matchId: string }) {
     const [isInviteDialogOpen, setIsInviteDialogOpen] = useState(false);
     const [email, setEmail] = useState("");
     const queryClient = useQueryClient();
+    const [editingInvite, setEditingInvite] = useState<Invite | null>(null);
 
-    const { data: invites, isLoading } = useQuery({
+    const {data: invites, isLoading} = useQuery({
         queryKey: ["match-invites", matchId],
         queryFn: () => getMatchInvites(matchId),
     });
@@ -622,7 +690,7 @@ function InvitesTab({ matchId }: { matchId: string }) {
     const inviteMutation = useMutation({
         mutationFn: (email: string) => inviteUser(matchId, email),
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ["match-invites", matchId] });
+            queryClient.invalidateQueries({queryKey: ["match-invites", matchId]});
             toast.success("Invitation sent successfully");
             setIsInviteDialogOpen(false);
             setEmail("");
@@ -632,10 +700,20 @@ function InvitesTab({ matchId }: { matchId: string }) {
         },
     });
 
+    const updateInviteMutation = useMutation({
+        mutationFn: ({inviteId, data}: { inviteId: string; data: Partial<Invite> }) =>
+            updateInvite(matchId, inviteId, data),
+        onSuccess: () => {
+            queryClient.invalidateQueries({queryKey: ["match-invites", matchId]});
+            toast.success("Invite updated");
+        },
+        onError: () => toast.error("Failed to update invite"),
+    });
+
     const deleteMutation = useMutation({
         mutationFn: (inviteId: string) => deleteInvite(matchId, inviteId),
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ["match-invites", matchId] });
+            queryClient.invalidateQueries({queryKey: ["match-invites", matchId]});
             toast.success("Invite deleted successfully");
         },
         onError: () => {
@@ -660,7 +738,7 @@ function InvitesTab({ matchId }: { matchId: string }) {
                 <Dialog open={isInviteDialogOpen} onOpenChange={setIsInviteDialogOpen}>
                     <DialogTrigger asChild>
                         <Button>
-                            <Mail className="w-4 h-4 mr-2" />
+                            <Mail className="w-4 h-4 mr-2"/>
                             Send Invite
                         </Button>
                     </DialogTrigger>
@@ -693,31 +771,50 @@ function InvitesTab({ matchId }: { matchId: string }) {
             <CardContent>
                 {!invites || invites.length === 0 ? (
                     <div className="text-center py-8 text-gray-500">
-                        <Mail className="w-12 h-12 mx-auto mb-3 text-gray-400" />
+                        <Mail className="w-12 h-12 mx-auto mb-3 text-gray-400"/>
                         <p>No pending invites.</p>
                     </div>
                 ) : (
                     <div className="space-y-2">
                         {invites.map((invite: Invite) => (
-                            <div
-                                key={invite.id}
-                                className="border p-4 rounded-lg flex items-center justify-between"
-                            >
-                                <div>
-                                    <div className="font-medium">{invite.name}</div>
-                                    <div className="text-sm text-gray-500 mt-1">
-                                        Token: <code className="bg-gray-100 px-2 py-1 rounded text-xs">{invite.token}</code>
-                                    </div>
-                                    {invite.createdAt && (
-                                        <div className="text-xs text-gray-500 mt-1">
-                                            Sent: {new Date(invite.createdAt).toLocaleString()}
-                                        </div>
-                                    )}
+                            <div className="flex gap-2">
+
+                                <div className="font-medium">{invite.name}</div>
+                                <div className="text-sm text-gray-500 mt-1">
+                                    Token: <code className="bg-gray-100 px-2 py-1 rounded text-xs">{invite.token}</code>
                                 </div>
+                                {invite.createdAt && (
+                                    <div className="text-xs text-gray-500 mt-1">
+                                        Sent: {new Date(invite.createdAt).toLocaleString()}
+                                    </div>
+                                )}
+                                {/* Copy link */}
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => {
+                                        const link = `${window.location.origin}/invites/join/${invite.token}`;
+                                        navigator.clipboard.writeText(link);
+                                        toast.success("Invite link copied");
+                                    }}
+                                >
+                                    Copy
+                                </Button>
+
+                                {/* Edit */}
+                                <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => setEditingInvite(invite)}
+                                >
+                                    <Edit2 className="w-4 h-4"/>
+                                </Button>
+
+                                {/* Delete */}
                                 <AlertDialog>
                                     <AlertDialogTrigger asChild>
                                         <Button variant="ghost" size="sm">
-                                            <Trash2 className="w-4 h-4 text-red-500" />
+                                            <Trash2 className="w-4 h-4 text-red-500"/>
                                         </Button>
                                     </AlertDialogTrigger>
                                     <AlertDialogContent>
@@ -742,7 +839,87 @@ function InvitesTab({ matchId }: { matchId: string }) {
                         ))}
                     </div>
                 )}
+                <Dialog open={!!editingInvite} onOpenChange={(open) => !open && setEditingInvite(null)}>
+                    <DialogContent>
+                        <DialogHeader>
+                            <DialogTitle>Edit Invite</DialogTitle>
+                        </DialogHeader>
+
+                        {editingInvite && (
+                            <InviteForm
+                                initialData={editingInvite}
+                                onSubmit={(data: any) => {
+                                    updateInviteMutation.mutate({
+                                        inviteId: editingInvite.id,
+                                        data,
+                                    });
+                                    setEditingInvite(null);
+                                }}
+                            />
+                        )}
+                    </DialogContent>
+                </Dialog>
             </CardContent>
         </Card>
+
+    );
+}
+
+function InviteForm({initialData, onSubmit}: any) {
+    const [name, setName] = useState(initialData?.name || "");
+    const [isActive, setIsActive] = useState(initialData?.isActive ?? true);
+
+    const [watchAdBeforeJoin, setWatchAdBeforeJoin] = useState(initialData?.metadata?.watchAdBeforeJoin);
+    const [joinAsRole, setJoinAsRole] = useState<"user" | "master" | "admin">(initialData.metadata?.joinAsRole || "user");
+    const [description, setDescription] = useState(initialData.metadata?.description || "");
+    return (
+        <div className="space-y-4">
+            <Input value={name} onChange={(e) => setName(e.target.value)}/>
+
+            <div className="flex items-center gap-2">
+                <input
+                    type="checkbox"
+                    checked={isActive}
+                    onChange={(e) => setIsActive(e.target.checked)}
+                />
+                <Label>Active</Label>
+            </div>
+
+            {/* Metadata */}
+            <div>
+                <label className="block text-sm font-medium mb-1">Join As Role</label>
+                <select
+                    value={joinAsRole}
+                    onChange={(e) => setJoinAsRole(e.target.value as any)}
+                    className="w-full border rounded p-2"
+                >
+                    <option value="user">User</option>
+                    <option value="master">Master</option>
+                    <option value="admin">Admin</option>
+                </select>
+            </div>
+
+            <div className="flex items-center justify-between">
+                <div>
+                    <label className="block text-sm font-medium">Watch Ad Before Join</label>
+                    <p className="text-xs text-gray-500">Require users to watch an ad before joining</p>
+                </div>
+                <Switch checked={watchAdBeforeJoin} onCheckedChange={setWatchAdBeforeJoin}/>
+            </div>
+
+            <div>
+                <label className="block text-sm font-medium mb-1">Description (optional)</label>
+                <textarea
+                    value={description}
+                    onChange={(e) => setDescription(e.target.value)}
+                    className="w-full border rounded p-2"
+                    rows={3}
+                    placeholder="Internal notes about this invite..."
+                />
+            </div>
+            <Button onClick={() => onSubmit({name, isActive, metadata: JSON.stringify({watchAdBeforeJoin, joinAsRole, description},null,2)})}>
+                Save
+            </Button>
+        </div>
     );
 }
