@@ -178,7 +178,7 @@ export default function AdminDashboard() {
                                                     </div>
                                                 </div>
                                                 <div className="flex items-center gap-2">
-                                                    <div className="text-sm text-gray-600">Match ID: {i.matchId}</div>
+                                                    <div className="text-sm text-gray-600">Match ID: {i.name}</div>
                                                     <Button
                                                         variant="ghost"
                                                         size="sm"

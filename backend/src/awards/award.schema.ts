@@ -10,10 +10,19 @@ import {
 @Schema()
 export class Award {
   @Prop()
-  name: string;
+  type: AwardType;
 
   @Prop()
-  issuedAt: Date;
+  title: string;
+
+  @Prop()
+  description?: string;
+
+  @Prop()
+  matchId: string;
+
+  @Prop()
+  earnedAt: string;
 }
 enum AwardType {
   BINGO = 'BINGO',

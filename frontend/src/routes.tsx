@@ -10,6 +10,7 @@ import AdminMatchEdit from "@/pages/AdminMatchEdit.tsx";
 import AdminInviteEdit from "@/pages/AdminInviteEdit.tsx";
 import InviteJoin from "@/pages/InviteJoin.tsx";
 import ProfilePage from "@/pages/ProfilePage.tsx";
+import PrivacyPolicy from "@/pages/PrivacyPolicy.tsx";
 
 // Protected Route Component
 function ProtectedRoute({
@@ -42,6 +43,10 @@ export const router = createBrowserRouter([
     {
         path: "/invites/join/:token",
         Component: InviteJoin,
+    },
+    {
+        path: "privacy",
+        Component: PrivacyPolicy,
     },
     {
         path: "/",

@@ -95,7 +95,6 @@ export interface MatchSettings {
 export interface Invite {
     id: string;
     name: string;
-    matchId: string;
     token: string;
     isActive: boolean;
     expiresAt: string;
