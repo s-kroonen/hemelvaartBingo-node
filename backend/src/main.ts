@@ -26,7 +26,7 @@ async function bootstrap() {
   );
   app.useGlobalGuards(app.get(FirebaseAuthGuard), app.get(RolesGuard));
   app.enableCors({
-    origin: [config.frontendUrl],
+    origin: [config.frontendUrl,config.webappUrl],
     credentials: true,
   });
   await app.listen(process.env.PORT ?? 3000);
