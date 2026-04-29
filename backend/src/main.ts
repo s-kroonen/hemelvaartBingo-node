@@ -25,8 +25,23 @@ async function bootstrap() {
     }),
   );
   app.useGlobalGuards(app.get(FirebaseAuthGuard), app.get(RolesGuard));
+  // app.enableCors({
+  //   origin: [config.frontendUrl,config.webappUrl],
+  //   credentials: true,
+  // });
   app.enableCors({
-    origin: [config.frontendUrl,config.webappUrl],
+    origin: (origin, callback) => {
+      // Allow local development (any port) and your production domain
+      const isLocal = !origin || origin.startsWith('http://localhost') || origin.startsWith('http://127.0.0.1');
+      const isProd = origin === config.frontendUrl || origin === config.webappUrl;
+
+      if (isLocal || isProd) {
+        callback(null, true);
+      } else {
+        callback(new Error('Not allowed by CORS'));
+      }
+    },
+    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
     credentials: true,
   });
   await app.listen(process.env.PORT ?? 3000);
