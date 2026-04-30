@@ -1,83 +1,112 @@
-import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { Types } from 'mongoose';
+import {Prop, Schema, SchemaFactory} from '@nestjs/mongoose';
+import {Types} from 'mongoose';
 import {
-  IsEmail,
-  IsEnum,
-  IsMongoId,
-  IsOptional,
-  IsString,
+    IsEmail,
+    IsEnum,
+    IsMongoId,
+    IsOptional,
+    IsString,
 } from 'class-validator';
+import {InviteMetadata} from "../invites/invite.schema";
+
 export enum Role {
-  USER = 'user',
-  ADMIN = 'admin',
-  MASTER = 'master',
+    USER = 'user',
+    ADMIN = 'admin',
+    MASTER = 'master',
 }
+
+export class UserSettings {
+    emailNotifications: boolean;
+    newsletter: boolean;
+    testerProgram: boolean;
+}
+
 @Schema()
 export class User {
-  @Prop({ required: true, unique: true })
-  email: string;
+    @Prop({required: true, unique: true})
+    email: string;
 
-  @Prop()
-  username: string;
+    @Prop()
+    username: string;
 
-  @Prop({ type: [{ type: Types.ObjectId, ref: 'Award' }] })
-  awards: Types.ObjectId[];
+    @Prop({type: [{type: Types.ObjectId, ref: 'Award'}]})
+    awards: Types.ObjectId[];
 
-  @Prop({ type: Types.ObjectId, ref: 'Match' })
-  currentMatchID: Types.ObjectId;
+    @Prop({type: Types.ObjectId, ref: 'Match'})
+    currentMatchID: Types.ObjectId;
 
+    @Prop({
+        type: [String],
+        enum: Role,
+        default: [Role.USER],
+    })
+    roles: Role[];
 
-  @Prop({
-    type: [String],
-    enum: Role,
-    default: [Role.USER],
-  })
-  roles: Role[];
+    @Prop({type: UserSettings})
+    settings: UserSettings;
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);
 UserSchema.set('toJSON', {
-  virtuals: true,
-  versionKey: false,
-  transform: function (doc, ret) {
-    delete (ret as any)._id; // Remove the original _id
-  },
+    virtuals: true,
+    versionKey: false,
+    transform: function (doc, ret) {
+        delete (ret as any)._id; // Remove the original _id
+    },
 });
+
 export class RoleDto {
-  @IsEnum(Role)
-  role: Role;
+    @IsEnum(Role)
+    role: Role;
 }
 
 export class CreateUserDto {
-  @IsEmail()
-  email: string;
+    @IsEmail()
+    email: string;
 
-  @IsOptional()
-  @IsString()
-  name?: string;
+    @IsOptional()
+    @IsString()
+    name?: string;
 
-  @IsOptional()
-  @IsEnum(Role, { each: true })
-  roles?: Role[];
+    @IsOptional()
+    @IsEnum(Role, {each: true})
+    roles?: Role[];
 
-  @IsOptional()
-  @IsMongoId()
-  currentMatchId?: string;
+    @IsOptional()
+    @IsMongoId()
+    currentMatchId?: string;
 }
+
+export class UpdateUserAdminDto {
+    @IsOptional()
+    @IsEmail()
+    email?: string;
+
+    @IsOptional()
+    @IsString()
+    name?: string;
+
+    @IsOptional()
+    @IsEnum(Role, {each: true})
+    roles?: Role[];
+
+    @IsOptional()
+    @IsMongoId()
+    currentMatchId?: string;
+
+    @IsOptional()
+    settings: UserSettings;
+}
+
 export class UpdateUserDto {
-  @IsOptional()
-  @IsEmail()
-  email?: string;
+    @IsOptional()
+    @IsEmail()
+    email?: string;
 
-  @IsOptional()
-  @IsString()
-  name?: string;
+    @IsOptional()
+    @IsString()
+    username?: string;
 
-  @IsOptional()
-  @IsEnum(Role, { each: true })
-  roles?: Role[];
-
-  @IsOptional()
-  @IsMongoId()
-  currentMatchId?: string;
+    @IsOptional()
+    settings: UserSettings;
 }

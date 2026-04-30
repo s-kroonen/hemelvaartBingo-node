@@ -17,7 +17,7 @@ import {
   CreateUserDto,
   Role,
   RoleDto,
-  UpdateUserDto,
+  UpdateUserAdminDto,
 } from '../users/user.schema';
 import { InviteService } from '../invites/invite.service';
 import { Types } from 'mongoose';
@@ -60,7 +60,7 @@ export class AdminController {
   }
 
   @Put('users/:id')
-  updateUser(@Param('id') id: string, @Body() dto: UpdateUserDto) {
+  updateUser(@Param('id') id: string, @Body() dto: UpdateUserAdminDto) {
     return this.userService.updateUser(id, dto);
   }
 

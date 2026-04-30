@@ -1,7 +1,7 @@
 import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { UserRepository } from './user.repository';
 import { Types } from 'mongoose';
-import { CreateUserDto, Role, UpdateUserDto } from './user.schema';
+import {CreateUserDto, Role, UpdateUserAdminDto, UpdateUserDto} from './user.schema';
 import { MatchService } from '../matches/match.service';
 import { CardService } from '../cards/card.service';
 import { generateBingoCells } from '../shared/bingo.util';
@@ -86,8 +86,19 @@ export class UserService {
     return this.repo.create(dto);
   }
 
-  async updateUser(id: string, dto: UpdateUserDto) {
-    return this.repo.findByIdAndUpdate(id, dto);
+  async updateUser(id: string, dto: UpdateUserAdminDto | UpdateUserDto) {
+    const update: any = { ...dto };
+
+    // handle partial settings update
+    if (dto.settings) {
+      update.$set = {};
+      for (const [key, value] of Object.entries(dto.settings)) {
+        update.$set[`settings.${key}`] = value;
+      }
+      delete update.settings; // prevent overwrite
+    }
+
+    return this.repo.findByIdAndUpdate(id, update);
   }
 
   async deleteUser(id: string) {
