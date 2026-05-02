@@ -10,8 +10,6 @@ import { generateBingoCells } from '../shared/bingo.util';
 export class UserService {
   constructor(
     private repo: UserRepository,
-    private matchService: MatchService,
-    private cardService: CardService,
   ) {}
 
   async updateCurrentMatch(userId: string, matchId: string) {
@@ -116,82 +114,4 @@ export class UserService {
   // async getCurrentMatchContext(id: any) {
   //     return this.userContextService.getCurrentMatchContext(id);
   // }
-  async getCurrentMatchContext(userId: string) {
-    const user = await this.repo.findById(userId);
-    if (!user) throw new NotFoundException('User not found');
-
-    if (!user.currentMatchID) {
-      return {
-        match: null,
-        card: null,
-        awards: [],
-        roleInMatch: null,
-      };
-    }
-
-    const match = await this.matchService.findById(user.currentMatchID);
-    if (!match) throw new NotFoundException('Match not found');
-
-    const card = await this.cardService.findByUserAndMatch(user._id, match._id);
-
-    const isMaster = match.masters.some((id) => id.equals(user._id));
-
-    return {
-      match,
-      card,
-      roleInMatch: isMaster ? 'master' : 'player',
-    };
-  }
-
-  async getMatchContext(userId: any, matchId: string) {
-    const user = await this.repo.findById(userId);
-    if (!user) throw new NotFoundException('User not found');
-
-    if (!user.currentMatchID) {
-      return {
-        match: null,
-        card: null,
-        awards: [],
-        roleInMatch: null,
-      };
-    }
-
-    const match = await this.matchService.findById(matchId);
-    if (!match) throw new NotFoundException('Match not found');
-
-    const card = await this.cardService.findByUserAndMatch(user._id, match._id);
-
-    const isMaster = match.masters.some((id) => id.equals(user._id));
-
-    return {
-      match,
-      card,
-      roleInMatch: isMaster ? 'master' : 'player',
-    };
-  }
-  async regenerateCard(userId: string, matchId?: string) {
-    const user = await this.repo.findById(userId);
-    if (!user) throw new NotFoundException('User does not exist');
-
-    const effectiveMatchId = matchId ?? user.currentMatchID;
-    if (!effectiveMatchId) throw new NotFoundException('No match specified');
-
-    const match = await this.matchService.findById(effectiveMatchId);
-    if (!match) throw new NotFoundException('Match not found');
-
-    const card = await this.cardService.findByUserAndMatch(user._id, match._id);
-
-    if (!card)
-      throw new NotFoundException(
-        `Card not found for user ${userId} and match ${effectiveMatchId}`,
-      );
-
-    const cells = generateBingoCells(match.cardSize);
-
-    return this.cardService.updateCard(card.id, { cells });
-  }
-
-  updateCellState(userId: Types.ObjectId, currentMatchID: Types.ObjectId, cellId: string, isChecked: boolean) {
-    return this.cardService.updateCellState(userId, currentMatchID, cellId, isChecked);
-  }
 }

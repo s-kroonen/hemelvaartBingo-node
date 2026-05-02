@@ -1,84 +1,98 @@
 import {
-    BadRequestException,
-    Injectable,
-    NotFoundException,
+  BadRequestException,
+  Injectable,
+  NotFoundException,
 } from '@nestjs/common';
-import {MatchRepository} from './match.repository';
-import {Match} from './match.schema';
+import { MatchRepository } from './match.repository';
+import { Match } from './match.schema';
 
-import {Types} from 'mongoose';
+import { Types } from 'mongoose';
+import { UserService } from '../users/user.service';
 
 @Injectable()
 export class MatchService {
-    constructor(private repo: MatchRepository) {
+  constructor(private repo: MatchRepository,
+  private userService: UserService,) {}
+
+  async getPlayerMatches(userId: Types.ObjectId): Promise<Match[]> {
+    return this.repo.findByPlayer(userId);
+  }
+
+  async createMatch(data: any) {
+    return this.repo.create(data);
+  }
+
+  async findById(id: string | Types.ObjectId) {
+    return this.repo.findById(id);
+  }
+
+  async findAll() {
+    return this.repo.findAll();
+  }
+
+  async updateMatch(matchId: string, data: any) {
+    return this.repo.update(matchId, data);
+  }
+
+  async addMaster(matchId: string, userId: string) {
+    const match = await this.repo.findById(matchId);
+
+    if (!match) {
+      throw new NotFoundException('Match not found');
     }
 
-    async getPlayerMatches(userId: Types.ObjectId): Promise<Match[]> {
-        return this.repo.findByPlayer(userId);
+    const alreadyMaster = match.masters?.some(
+      (id) => id.toString() === userId.toString(),
+    );
+
+    if (alreadyMaster) {
+      throw new BadRequestException('User is already a master');
     }
 
-    async createMatch(data: any) {
-        return this.repo.create(data);
+    return this.repo.addMaster(matchId, userId);
+  }
+
+  async removeMaster(matchId: string, userId: string) {
+    const match = await this.repo.findById(matchId);
+
+    if (!match) {
+      throw new NotFoundException('Match not found');
     }
 
-    async findById(id: string | Types.ObjectId) {
-        return this.repo.findById(id);
-    }
+    return this.repo.removeMaster(matchId, userId);
+  }
 
-    async findAll() {
-        return this.repo.findAll();
-    }
+  async delete(matchId: string) {
+    return this.repo.delete(matchId);
+  }
 
-    async updateMatch(matchId: string, data: any) {
-        return this.repo.update(matchId, data);
-    }
+  async getMatchesByMaster(masterId: string) {
+    const objectId = new Types.ObjectId(masterId);
+    return this.repo.findByMaster(objectId);
+  }
 
-    async addMaster(matchId: string, userId: string) {
-        const match = await this.repo.findById(matchId);
+  async updateMatchName(id: string, name: string) {
+    return this.repo.updateName(id, name);
+  }
 
-        if (!match) {
-            throw new NotFoundException('Match not found');
-        }
+  async updateMatchDates(_id: any, startDate: string, endDate: string) {
+    return this.repo.updateDates(_id, startDate, endDate);
+  }
 
-        const alreadyMaster = match.masters?.some(
-            (id) => id.toString() === userId.toString(),
-        );
+  async removePlayer(matchId: Types.ObjectId, userId: Types.ObjectId) {
+    return this.repo.removePlayer(matchId, userId);
+  }
+  async getMatchContext(userId: string) {
+    const user = await this.userService.findById(userId);
+    if (!user?.currentMatchID) return { match: null, role: null };
 
-        if (alreadyMaster) {
-            throw new BadRequestException('User is already a master');
-        }
+    const match = await this.repo.findById(user.currentMatchID);
+    if (!match) throw new NotFoundException('Match not found');
+    const isMaster = match.masters.some((id) => id.toString() === userId);
 
-        return this.repo.addMaster(matchId, userId);
-    }
-
-    async removeMaster(matchId: string, userId: string) {
-        const match = await this.repo.findById(matchId);
-
-        if (!match) {
-            throw new NotFoundException('Match not found');
-        }
-
-        return this.repo.removeMaster(matchId, userId);
-    }
-
-    async delete(matchId: string) {
-        return this.repo.delete(matchId);
-    }
-
-    async getMatchesByMaster(masterId: string) {
-        const objectId = new Types.ObjectId(masterId);
-        return this.repo.findByMaster(objectId);
-    }
-
-    async updateMatchName(id: string, name: string) {
-        return this.repo.updateName(id, name);
-    }
-
-    async updateMatchDates(_id: any, startDate: string, endDate: string) {
-        return this.repo.updateDates(_id, startDate, endDate);
-    }
-
-    async removePlayer(matchId: Types.ObjectId, userId: Types.ObjectId) {
-        return this.repo.removePlayer(matchId, userId);
-    }
+    return {
+      match,
+      roleInMatch: isMaster ? 'master' : 'player',
+    };
+  }
 }

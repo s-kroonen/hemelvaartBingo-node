@@ -3,10 +3,16 @@ import { CardRepository } from './card.repository';
 import { generateBingoCells } from '../shared/bingo.util';
 import { Types } from 'mongoose';
 import { Card } from './card.schema';
+import { UserService } from '../users/user.service';
+import { MatchService } from '../matches/match.service';
 
 @Injectable()
 export class CardService {
-  constructor(private cardRepo: CardRepository) {}
+  constructor(
+    private cardRepo: CardRepository,
+    private userService: UserService,
+    private matchService: MatchService,
+  ) {}
 
   async createCard(userId: string, matchId: string, size: number) {
     const cells = generateBingoCells(size);
@@ -38,7 +44,27 @@ export class CardService {
   ) {
     return this.cardRepo.updateCellState(userId, matchId, cellId, state);
   }
+  async regenerateCard(userId: string, matchId?: string) {
+    const user = await this.userService.findById(userId);
+    if (!user) throw new NotFoundException('User does not exist');
 
+    const effectiveMatchId = matchId ?? user.currentMatchID;
+    if (!effectiveMatchId) throw new NotFoundException('No match specified');
+
+    const match = await this.matchService.findById(effectiveMatchId);
+    if (!match) throw new NotFoundException('Match not found');
+
+    const card = await this.cardRepo.findByUserAndMatch(user._id, match._id);
+
+    if (!card)
+      throw new NotFoundException(
+        `Card not found for user ${userId} and match ${effectiveMatchId}`,
+      );
+
+    const cells = generateBingoCells(match.cardSize);
+
+    return this.cardRepo.updateCard(card.id, { cells });
+  }
   // async findByUserAndCurrentMatch(userId: string) {
   //   const user = await this.userService.findById(userId);
   //   if (!user) throw new NotFoundException('User does not exist');

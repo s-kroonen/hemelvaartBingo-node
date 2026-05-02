@@ -147,6 +147,6 @@ export class AdminController {
   }
   @Post('users/:userId/card/regenerate')
   regenerateCard(@Param('userId') userId: string) {
-    return this.userService.regenerateCard(userId);
+    return this.cardService.regenerateCard(userId);
   }
 }

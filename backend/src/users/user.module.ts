@@ -12,8 +12,6 @@ import {CardModule} from "../cards/card.module";
         MongooseModule.forFeature([
             {name: User.name, schema: UserSchema}
         ]),
-        MatchModule,
-        CardModule,
     ],
     providers: [UserService, UserRepository],
     controllers: [UserController],

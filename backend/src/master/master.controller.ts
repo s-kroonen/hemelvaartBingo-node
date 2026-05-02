@@ -165,7 +165,7 @@ export class MasterController {
       throw new NotFoundException(`Match with id ${matchId} not found`);
     const user = await this.userService.findById(userId);
     if (!user) throw new NotFoundException(`User with id ${userId} not found`);
-    return this.userService.regenerateCard(user.id, match.id);
+    return this.cardService.regenerateCard(user.id, match.id);
   }
 
   @Delete('matches/:matchId/participants/:userId')
