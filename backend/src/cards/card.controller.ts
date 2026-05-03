@@ -14,6 +14,9 @@ import { Query } from 'mongoose';
 import { CardService } from './card.service';
 import { UserService } from '../users/user.service';
 import { MatchService } from '../matches/match.service';
+import {RolesGuard} from "../auth/roles.guard";
+import {Roles} from "../auth/roles.decorator";
+import {Role} from "../users/user.schema";
 
 @Controller('cards')
 @UseGuards(FirebaseAuthGuard)
@@ -34,15 +37,17 @@ export class CardController {
     return this.cardService.findByUserAndMatch(user._id, match._id);
   }
 
-  @Post('regenerate')
-  async regenerate(@Req() req, @Body('matchId') matchId: string) {
-
-    const user = await this.userService.findById(req.user.dbUser._id);
-    if (!user) throw new NotFoundException('User not found');
-    const match = await this.matchService.findById(matchId);
-    if (!match) throw new NotFoundException('Match Not Found');
-    return this.cardService.regenerateCard(user.id, match.id);
-  }
+  // @UseGuards(RolesGuard)
+  // @Roles(Role.MASTER)
+  // @Post('regenerate')
+  // async regenerate(@Req() req, @Body('matchId') matchId: string) {
+  //
+  //   const user = await this.userService.findById(req.user.dbUser._id);
+  //   if (!user) throw new NotFoundException('User not found');
+  //   const match = await this.matchService.findById(matchId);
+  //   if (!match) throw new NotFoundException('Match Not Found');
+  //   return this.cardService.regenerateCard(user.id, match.id);
+  // }
 
   @Put('cell')
   async toggleCell(

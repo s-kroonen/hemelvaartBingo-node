@@ -82,11 +82,11 @@ export class MatchService {
   async removePlayer(matchId: Types.ObjectId, userId: Types.ObjectId) {
     return this.repo.removePlayer(matchId, userId);
   }
-  async getMatchContext(userId: string) {
+  async getMatchContext(userId: string, matchId?: string) {
     const user = await this.userService.findById(userId);
     if (!user?.currentMatchID) return { match: null, role: null };
 
-    const match = await this.repo.findById(user.currentMatchID);
+    const match = await this.repo.findById(matchId?? user.currentMatchID);
     if (!match) throw new NotFoundException('Match not found');
     const isMaster = match.masters.some((id) => id.toString() === userId);
 
