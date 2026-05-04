@@ -97,10 +97,6 @@ export class UpdateMatchDto {
   status: MatchStatus;
 
   @IsOptional()
-  @IsArray()
-  calledNumbers: number[];
-
-  @IsOptional()
   @IsNumber()
   @IsPositive()
   numbersPerEvent: number;

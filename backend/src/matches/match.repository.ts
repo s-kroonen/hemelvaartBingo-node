@@ -24,7 +24,7 @@ export class MatchRepository {
         return this.model.findByIdAndUpdate(id, data, {new: true});
     }
 
-    delete(id: string) {
+    delete(id: Types.ObjectId) {
         return this.model.findByIdAndDelete(id);
     }
 

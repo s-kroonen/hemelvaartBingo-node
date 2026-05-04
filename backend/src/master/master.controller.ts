@@ -34,152 +34,152 @@ export class MasterController {
     private inviteService: InviteService,
   ) {}
 
-  @Get('matches')
-  getMyMatches(@Req() req) {
-    return this.matchService.getMatchesByMaster(req.user.dbUser.id);
-  }
-
-  @Get('matches/:matchId')
-  getMyMatchDetail(@Param('matchId') matchId: string) {
-    return this.matchService.findById(matchId);
-  }
-
-  @Put('matches/:matchId/name')
-  async updateMatchName(
-    @Param('matchId') matchId: string,
-    @Body() dto: UpdateMatchDto,
-  ) {
-    const match = await this.matchService.findById(matchId);
-    if (!match)
-      throw new NotFoundException(`Match with id ${matchId} not found`);
-    return this.matchService.updateMatchName(matchId, dto.name);
-  }
-
-  @Put('matches/:matchId/dates')
-  async updateMatchDate(
-    @Param('matchId') matchId: string,
-    @Body() dto: UpdateMatchDto,
-  ) {
-    const match = await this.matchService.findById(matchId);
-    if (!match)
-      throw new NotFoundException(`Match with id ${matchId} not found`);
-    return this.matchService.updateMatchDates(
-      match._id,
-      dto.startDate,
-      dto.endDate,
-    );
-  }
+  // @Get('matches')
+  // getMyMatches(@Req() req) {
+  //   return this.matchService.getMatchesByMaster(req.user.dbUser.id);
+  // }
+  //
+  // @Get('matches/:matchId')
+  // getMyMatchDetail(@Param('matchId') matchId: string) {
+  //   return this.matchService.findById(matchId);
+  // }
+  //
+  // @Put('matches/:matchId/name')
+  // async updateMatchName(
+  //   @Param('matchId') matchId: string,
+  //   @Body() dto: UpdateMatchDto,
+  // ) {
+  //   const match = await this.matchService.findById(matchId);
+  //   if (!match)
+  //     throw new NotFoundException(`Match with id ${matchId} not found`);
+  //   return this.matchService.updateMatchName(matchId, dto.name);
+  // }
+  //
+  // @Put('matches/:matchId/dates')
+  // async updateMatchDate(
+  //   @Param('matchId') matchId: string,
+  //   @Body() dto: UpdateMatchDto,
+  // ) {
+  //   const match = await this.matchService.findById(matchId);
+  //   if (!match)
+  //     throw new NotFoundException(`Match with id ${matchId} not found`);
+  //   return this.matchService.updateMatchDates(
+  //     match._id,
+  //     dto.startDate,
+  //     dto.endDate,
+  //   );
+  // }
 
   // Events
-  @Get('matches/:matchId/events')
-  async getMyMatchEvents(@Param('matchId') matchId: string) {
-    const match = await this.matchService.findById(matchId);
-    if (!match)
-      throw new NotFoundException(`Match with id ${matchId} not found`);
-    return this.eventService.findByMatch(match._id);
-  }
-
-  @Post('matches/:matchId/events')
-  async createEventForMatch(
-    @Param('matchId') matchId: string,
-    @Body() dto: CreateEventDto,
-  ) {
-    const match = await this.matchService.findById(matchId);
-    if (!match)
-      throw new NotFoundException(`Match with id ${matchId} not found`);
-    return this.eventService.createForMatch(dto, match.id);
-  }
-
-  @Put('matches/:matchId/events/:eventId')
-  async updateEventForMatch(
-    @Param('matchId') matchId: string,
-    @Param('eventId') eventId: string,
-    @Body() dto: UpdateEventDto,
-  ) {
-    const match = await this.matchService.findById(matchId);
-    if (!match)
-      throw new NotFoundException(`Match with id ${matchId} not found`);
-    const event = await this.eventService.findById(eventId);
-    if (!event)
-      throw new NotFoundException(`Event with id ${eventId} not found`);
-    return this.eventService.updateForMatch(dto, match._id, event._id);
-  }
-
-  @Post('matches/:matchId/events/:eventId/call')
-  async callEventForMatch(
-    @Param('matchId') matchId: string,
-    @Param('eventId') eventId: string,
-  ) {
-    const match = await this.matchService.findById(matchId);
-    if (!match)
-      throw new NotFoundException(`Match with id ${matchId} not found`);
-    const event = await this.eventService.findById(eventId);
-    if (!event)
-      throw new NotFoundException(`Event with id ${eventId} not found`);
-    return this.eventService.callEvent(match._id, event._id);
-  }
-
-  @Post('matches/:matchId/events/:eventId/recall')
-  async recallEventForMatch(
-    @Param('matchId') matchId: string,
-    @Param('eventId') eventId: string,
-  ) {
-    const match = await this.matchService.findById(matchId);
-    if (!match)
-      throw new NotFoundException(`Match with id ${matchId} not found`);
-    const event = await this.eventService.findById(eventId);
-    if (!event)
-      throw new NotFoundException(`Event with id ${eventId} not found`);
-    return this.eventService.recallEvent(match._id, event._id);
-  }
-
-  @Delete('matches/:matchId/events/:eventId')
-  async deleteEventForMatch(
-    @Param('matchId') matchId: string,
-    @Param('eventId') eventId: string,
-  ) {
-    const match = await this.matchService.findById(matchId);
-    if (!match)
-      throw new NotFoundException(`Match with id ${matchId} not found`);
-    const event = await this.eventService.findById(eventId);
-    if (!event)
-      throw new NotFoundException(`Event with id ${eventId} not found`);
-    return this.eventService.deleteForMatch(match._id, event._id);
-  }
+  // @Get('matches/:matchId/events')
+  // async getMyMatchEvents(@Param('matchId') matchId: string) {
+  //   const match = await this.matchService.findById(matchId);
+  //   if (!match)
+  //     throw new NotFoundException(`Match with id ${matchId} not found`);
+  //   return this.eventService.findByMatch(match._id);
+  // }
+  //
+  // @Post('matches/:matchId/events')
+  // async createEventForMatch(
+  //   @Param('matchId') matchId: string,
+  //   @Body() dto: CreateEventDto,
+  // ) {
+  //   const match = await this.matchService.findById(matchId);
+  //   if (!match)
+  //     throw new NotFoundException(`Match with id ${matchId} not found`);
+  //   return this.eventService.createForMatch(dto, match.id);
+  // }
+  //
+  // @Put('matches/:matchId/events/:eventId')
+  // async updateEventForMatch(
+  //   @Param('matchId') matchId: string,
+  //   @Param('eventId') eventId: string,
+  //   @Body() dto: UpdateEventDto,
+  // ) {
+  //   const match = await this.matchService.findById(matchId);
+  //   if (!match)
+  //     throw new NotFoundException(`Match with id ${matchId} not found`);
+  //   const event = await this.eventService.findById(eventId);
+  //   if (!event)
+  //     throw new NotFoundException(`Event with id ${eventId} not found`);
+  //   return this.eventService.updateForMatch(dto, match._id, event._id);
+  // }
+  //
+  // @Post('matches/:matchId/events/:eventId/call')
+  // async callEventForMatch(
+  //   @Param('matchId') matchId: string,
+  //   @Param('eventId') eventId: string,
+  // ) {
+  //   const match = await this.matchService.findById(matchId);
+  //   if (!match)
+  //     throw new NotFoundException(`Match with id ${matchId} not found`);
+  //   const event = await this.eventService.findById(eventId);
+  //   if (!event)
+  //     throw new NotFoundException(`Event with id ${eventId} not found`);
+  //   return this.eventService.callEvent(match._id, event._id);
+  // }
+  //
+  // @Post('matches/:matchId/events/:eventId/recall')
+  // async recallEventForMatch(
+  //   @Param('matchId') matchId: string,
+  //   @Param('eventId') eventId: string,
+  // ) {
+  //   const match = await this.matchService.findById(matchId);
+  //   if (!match)
+  //     throw new NotFoundException(`Match with id ${matchId} not found`);
+  //   const event = await this.eventService.findById(eventId);
+  //   if (!event)
+  //     throw new NotFoundException(`Event with id ${eventId} not found`);
+  //   return this.eventService.recallEvent(match._id, event._id);
+  // }
+  //
+  // @Delete('matches/:matchId/events/:eventId')
+  // async deleteEventForMatch(
+  //   @Param('matchId') matchId: string,
+  //   @Param('eventId') eventId: string,
+  // ) {
+  //   const match = await this.matchService.findById(matchId);
+  //   if (!match)
+  //     throw new NotFoundException(`Match with id ${matchId} not found`);
+  //   const event = await this.eventService.findById(eventId);
+  //   if (!event)
+  //     throw new NotFoundException(`Event with id ${eventId} not found`);
+  //   return this.eventService.deleteForMatch(match._id, event._id);
+  // }
 
   // Participants
-  @Get('matches/:matchId/participants')
-  async getParticipants(@Param('matchId') matchId: string) {
-    const match = await this.matchService.findById(matchId);
-    if (!match)
-      throw new NotFoundException(`Match with id ${matchId} not found`);
-    return match.players;
-  }
-  @Post('matches/:matchId/participants/:userId/regenerate-card')
-  async participantRegenerateCard(
-    @Param('matchId') matchId: string,
-    @Param('userId') userId: string,
-  ) {
-    const match = await this.matchService.findById(matchId);
-    if (!match)
-      throw new NotFoundException(`Match with id ${matchId} not found`);
-    const user = await this.userService.findById(userId);
-    if (!user) throw new NotFoundException(`User with id ${userId} not found`);
-    return this.cardService.regenerateCard(user.id, match.id);
-  }
-
-  @Delete('matches/:matchId/participants/:userId')
-  async deleteParticipant(
-    @Param('matchId') matchId: string,
-    @Param('userId') userId: string,
-  ) {
-    const match = await this.matchService.findById(matchId);
-    if (!match)
-      throw new NotFoundException(`Match with id ${matchId} not found`);
-    const user = await this.userService.findById(userId);
-    if (!user) throw new NotFoundException(`User with id ${userId} not found`);
-    return this.matchService.removePlayer(match._id, user._id);
-  }
+  // @Get('matches/:matchId/participants')
+  // async getParticipants(@Param('matchId') matchId: string) {
+  //   const match = await this.matchService.findById(matchId);
+  //   if (!match)
+  //     throw new NotFoundException(`Match with id ${matchId} not found`);
+  //   return match.players;
+  // }
+  // @Post('matches/:matchId/participants/:userId/regenerate-card')
+  // async participantRegenerateCard(
+  //   @Param('matchId') matchId: string,
+  //   @Param('userId') userId: string,
+  // ) {
+  //   const match = await this.matchService.findById(matchId);
+  //   if (!match)
+  //     throw new NotFoundException(`Match with id ${matchId} not found`);
+  //   const user = await this.userService.findById(userId);
+  //   if (!user) throw new NotFoundException(`User with id ${userId} not found`);
+  //   return this.cardService.regenerateCard(user.id, match.id);
+  // }
+  //
+  // @Delete('matches/:matchId/participants/:userId')
+  // async deleteParticipant(
+  //   @Param('matchId') matchId: string,
+  //   @Param('userId') userId: string,
+  // ) {
+  //   const match = await this.matchService.findById(matchId);
+  //   if (!match)
+  //     throw new NotFoundException(`Match with id ${matchId} not found`);
+  //   const user = await this.userService.findById(userId);
+  //   if (!user) throw new NotFoundException(`User with id ${userId} not found`);
+  //   return this.matchService.removePlayer(match._id, user._id);
+  // }
 
   // Invites
   @Get('/matches/:matchId/invites')

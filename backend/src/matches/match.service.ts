@@ -62,13 +62,12 @@ export class MatchService {
     return this.repo.removeMaster(matchId, userId);
   }
 
-  async delete(matchId: string) {
+  async delete(matchId: Types.ObjectId) {
     return this.repo.delete(matchId);
   }
 
-  async getMatchesByMaster(masterId: string) {
-    const objectId = new Types.ObjectId(masterId);
-    return this.repo.findByMaster(objectId);
+  async getMatchesByMaster(masterId: Types.ObjectId) {
+    return this.repo.findByMaster(masterId);
   }
 
   async updateMatchName(id: string, name: string) {
@@ -86,9 +85,10 @@ export class MatchService {
     const user = await this.userService.findById(userId);
     if (!user?.currentMatchID) return { match: null, role: null };
 
-    const match = await this.repo.findById(matchId?? user.currentMatchID);
+    const match = await this.repo.findById(matchId ?? user.currentMatchID);
     if (!match) throw new NotFoundException('Match not found');
-    const isMaster = match.masters.some((id) => id.toString() === userId);
+
+    const isMaster = match.masters.some((id) => id.equals(user._id));
 
     return {
       match,

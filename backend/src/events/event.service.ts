@@ -51,7 +51,7 @@ export class EventService {
   async deleteForMatch(matchId: Types.ObjectId, eventId: Types.ObjectId) {
     return this.eventRepo.deleteForMatch(eventId, matchId);
   }
-  async callEvent(matchId: Types.ObjectId, eventId: Types.ObjectId) {
+  async callEvent(matchId: Types.ObjectId, eventId: string | Types.ObjectId) {
     const match = await this.matchService.findById(matchId);
     const event = await this.eventRepo.findById(eventId);
     if (!event)

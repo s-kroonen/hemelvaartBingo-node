@@ -7,6 +7,7 @@ import {
   UseGuards,
   Delete,
   Put,
+  NotFoundException,
 } from '@nestjs/common';
 import { FirebaseAuthGuard } from '../auth/firebase-auth.guard';
 import { RolesGuard } from '../auth/roles.guard';
@@ -94,8 +95,10 @@ export class AdminController {
     return this.matchService.findById(id);
   }
   @Delete('matches/:id')
-  deleteMatch(@Param('id') id: string) {
-    return this.matchService.delete(id);
+  async deleteMatch(@Param('id') id: string) {
+    const match = await this.matchService.findById(id);
+    if (!match) throw new NotFoundException(`Match with id ${id} not found`);
+    return this.matchService.delete(match._id);
   }
   @Post('matches')
   createMatch(@Body() dto: CreateMatchDto) {
