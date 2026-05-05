@@ -3,7 +3,7 @@ import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 import { Invite, InviteSchema } from './invite.schema';
 import { InviteService } from './invite.service';
-import { InviteController } from './invite.controller';
+import { InviteController, InviteMatchController } from './invite.controller';
 import { InviteRepository } from './invite.repository';
 import { UserModule } from '../users/user.module';
 import { MatchModule } from '../matches/match.module';
@@ -17,7 +17,7 @@ import { CardModule } from '../cards/card.module';
     CardModule,
   ],
   providers: [InviteService, InviteRepository],
-  controllers: [InviteController],
+  controllers: [InviteController, InviteMatchController],
   exports: [InviteService],
 })
 export class InviteModule {}

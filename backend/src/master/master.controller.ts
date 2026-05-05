@@ -182,11 +182,11 @@ export class MasterController {
   // }
 
   // Invites
-  @Get('/matches/:matchId/invites')
-  async getInvites(@Param('matchId') matchId: string) {
-    const match = await this.matchService.findById(matchId);
-    if (!match)
-      throw new NotFoundException(`Match with id ${matchId} not found`);
-    return this.inviteService.findByMatch(match.id);
-  }
+  // @Get('/matches/:matchId/invites')
+  // async getInvites(@Param('matchId') matchId: string) {
+  //   const match = await this.matchService.findById(matchId);
+  //   if (!match)
+  //     throw new NotFoundException(`Match with id ${matchId} not found`);
+  //   return this.inviteService.findByMatch(match.id);
+  // }
 }

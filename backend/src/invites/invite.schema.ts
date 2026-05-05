@@ -3,9 +3,11 @@ import { Types } from 'mongoose';
 import {
   IsBoolean,
   IsDate,
+  IsDateString,
   IsEmail,
   IsMongoId,
   IsOptional,
+  IsString,
 } from 'class-validator';
 
 export class InviteMetadata {
@@ -42,6 +44,12 @@ InviteSchema.set('toJSON', {
 export class CreateInviteDto {
   @IsMongoId()
   matchId: string;
+  @IsString()
+  name: string;
+  @IsDateString()
+  expiresAt: Date;
+  @IsOptional()
+  metadata: InviteMetadata;
 }
 export class UpdateInviteDto {
   @IsOptional()
@@ -59,12 +67,8 @@ export class UpdateInviteDto {
   isActive: boolean;
 
   @IsOptional()
-  @IsDate()
+  @IsDateString()
   expiresAt: Date;
-
-  @IsOptional()
-  @IsDate()
-  createdAt: Date;
 
   @IsOptional()
   metadata: InviteMetadata;

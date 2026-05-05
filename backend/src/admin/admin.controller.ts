@@ -120,7 +120,7 @@ export class AdminController {
   // INVITES
   @Post('/matches/:matchId/invites')
   createInvite(@Body() dto: CreateInviteDto) {
-    return this.inviteService.createInvite(new Types.ObjectId(dto.matchId));
+    return this.inviteService.createInvite(dto);
   }
   @Get('/matches/:matchId/invites')
   getForMatch(@Param('matchId') matchId: string) {

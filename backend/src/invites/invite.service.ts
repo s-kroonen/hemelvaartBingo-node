@@ -1,117 +1,119 @@
 import {
-    Injectable,
-    NotFoundException,
-    BadRequestException,
+  Injectable,
+  NotFoundException,
+  BadRequestException,
 } from '@nestjs/common';
-import {Types} from 'mongoose';
-import {InviteRepository} from './invite.repository';
-import {CardService} from '../cards/card.service';
-import {MatchService} from '../matches/match.service';
-import {UserService} from '../users/user.service';
+import { Types } from 'mongoose';
+import { InviteRepository } from './invite.repository';
+import { CardService } from '../cards/card.service';
+import { MatchService } from '../matches/match.service';
+import { UserService } from '../users/user.service';
+import { CreateInviteDto } from './invite.schema';
 
 @Injectable()
 export class InviteService {
-    constructor(
-        private inviteRepo: InviteRepository,
-        private matchRepo: MatchService,
-        private userRepo: UserService,
-        private cardService: CardService,
-    ) {
+  constructor(
+    private inviteRepo: InviteRepository,
+    private matchRepo: MatchService,
+    private userRepo: UserService,
+    private cardService: CardService,
+  ) {}
+
+  async joinMatch(token: string, userEmail: string) {
+    const invite = await this.inviteRepo.findByToken(token);
+
+    if (!invite) {
+      throw new NotFoundException('Invalid invite');
     }
 
-    async joinMatch(token: string, userEmail: string) {
-        const invite = await this.inviteRepo.findByToken(token);
-
-        if (!invite) {
-            throw new NotFoundException('Invalid invite');
-        }
-
-        if (!invite.isActive) {
-            throw new BadRequestException('Invite is inactive');
-        }
-
-        if (invite.expiresAt && invite.expiresAt < new Date()) {
-            throw new BadRequestException('Invite expired');
-        }
-
-        const user = await this.userRepo.findByEmail(userEmail);
-        if (!user) {
-            throw new NotFoundException('User not found');
-        }
-
-        const match = await this.matchRepo.findById(invite.matchId.toString());
-        if (!match) {
-            throw new NotFoundException('Match not found');
-        }
-
-        const userId = new Types.ObjectId(user._id);
-        const matchId = new Types.ObjectId(match._id);
-
-        // Add user to match safely
-        const alreadyInMatch = match.players.some((p) => {
-            const id = p._id ?? p; // works for populated & non-populated
-            return id.equals(userId);
-        });
-
-        if (!alreadyInMatch) {
-            match.players.push(userId);
-            await match.save();
-        }
-
-        // Set current match
-        user.currentMatchID = matchId;
-
-        // Check if card exists (use repo method ideally)
-        const existingCard = await this.cardService.findByUserAndMatch(
-            userId,
-            matchId,
-        );
-        console.log(existingCard);
-
-        if (!existingCard) {
-            await this.cardService.createCard(
-                userId.toString(),
-                matchId.toString(),
-                match.cardSize,
-            );
-        }
-
-        await user.save();
-        return {
-            success: true,
-            matchId: matchId,
-        };
+    if (!invite.isActive) {
+      throw new BadRequestException('Invite is inactive');
     }
 
-    async createInvite(matchId: Types.ObjectId) {
-        return this.inviteRepo.create({
-            matchId: matchId,
-            token: crypto.randomUUID(),
-            isActive: true,
-        });
+    if (invite.expiresAt && invite.expiresAt < new Date()) {
+      throw new BadRequestException('Invite expired');
     }
 
-    async findAll() {
-        return this.inviteRepo.findAll();
+    const user = await this.userRepo.findByEmail(userEmail);
+    if (!user) {
+      throw new NotFoundException('User not found');
     }
 
-    async delete(id: string) {
-        return this.inviteRepo.delete(id);
+    const match = await this.matchRepo.findById(invite.matchId.toString());
+    if (!match) {
+      throw new NotFoundException('Match not found');
     }
 
-    async findByMatch(matchId: string) {
-        return this.inviteRepo.findByMatch(matchId);
+    const userId = new Types.ObjectId(user._id);
+    const matchId = new Types.ObjectId(match._id);
+
+    // Add user to match safely
+    const alreadyInMatch = match.players.some((p) => {
+      const id = p._id ?? p; // works for populated & non-populated
+      return id.equals(userId);
+    });
+
+    if (!alreadyInMatch) {
+      match.players.push(userId);
+      await match.save();
     }
 
-    async findById(inviteId: string | Types.ObjectId) {
-        return this.inviteRepo.findById(inviteId);
+    // Set current match
+    user.currentMatchID = matchId;
+
+    // Check if card exists (use repo method ideally)
+    const existingCard = await this.cardService.findByUserAndMatch(
+      userId,
+      matchId,
+    );
+    console.log(existingCard);
+
+    if (!existingCard) {
+      await this.cardService.createCard(
+        userId.toString(),
+        matchId.toString(),
+        match.cardSize,
+      );
     }
 
-    async updateInvite(id: string, data: any) {
-        return this.inviteRepo.findByIdAndUpdate(id, data);
-    }
+    await user.save();
+    return {
+      success: true,
+      matchId: matchId,
+    };
+  }
 
-    async findByToken(token: string) {
-        return this.inviteRepo.findByToken(token);
-    }
+  async createInvite(data: CreateInviteDto) {
+    return this.inviteRepo.create({
+      matchId: new Types.ObjectId(data.matchId),
+      name: data.name,
+      expiresAt: data.expiresAt,
+      token: crypto.randomUUID(),
+      isActive: true,
+    });
+  }
+
+  async findAll() {
+    return this.inviteRepo.findAll();
+  }
+
+  async delete(id: string) {
+    return this.inviteRepo.delete(id);
+  }
+
+  async findByMatch(matchId: string) {
+    return this.inviteRepo.findByMatch(matchId);
+  }
+
+  async findById(inviteId: string | Types.ObjectId) {
+    return this.inviteRepo.findById(inviteId);
+  }
+
+  async updateInvite(id: string, data: any) {
+    return this.inviteRepo.findByIdAndUpdate(id, data);
+  }
+
+  async findByToken(token: string) {
+    return this.inviteRepo.findByToken(token);
+  }
 }
