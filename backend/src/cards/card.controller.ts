@@ -18,7 +18,7 @@ import {RolesGuard} from "../auth/roles.guard";
 import {Roles} from "../auth/roles.decorator";
 import {Role} from "../users/user.schema";
 
-@Controller('cards')
+@Controller({ path: 'cards', version: '1' })
 @UseGuards(FirebaseAuthGuard)
 export class CardController {
   constructor(

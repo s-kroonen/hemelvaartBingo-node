@@ -14,8 +14,7 @@ import { CreateEventDto, UpdateEventDto } from './event.schema';
 import { EventService } from './event.service';
 import { FirebaseAuthGuard } from '../auth/firebase-auth.guard';
 import { IsMasterGuard } from '../auth/isMaster.guard';
-
-@Controller('matches/:matchId/events')
+@Controller({ path: 'matches/:matchId/events', version: '1' })
 @UseGuards(FirebaseAuthGuard, IsMasterGuard) // Entire controller is protected
 export class EventController {
   constructor(private eventService: EventService) {}

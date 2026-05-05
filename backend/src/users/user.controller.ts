@@ -15,7 +15,7 @@ import {MatchService} from '../matches/match.service';
 import {Types} from 'mongoose';
 import {UpdateUserDto} from "./user.schema";
 
-@Controller('users')
+@Controller({ path: 'users', version: '1' })
 export class UserController {
     constructor(
         private userService: UserService,

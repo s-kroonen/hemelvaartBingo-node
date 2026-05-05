@@ -18,7 +18,7 @@ import { CardService } from '../cards/card.service';
 import { UserService } from '../users/user.service';
 import { AuthGuard } from '@nestjs/passport';
 
-@Controller('matches')
+@Controller({ path: 'matches', version: '1' })
 @UseGuards(FirebaseAuthGuard)
 export class MatchController {
   constructor(

@@ -1,7 +1,7 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import config from './config';
-import { ValidationPipe } from '@nestjs/common';
+import { ValidationPipe, VersioningType } from '@nestjs/common';
 import { FirebaseAuthGuard } from './auth/firebase-auth.guard';
 import { RolesGuard } from './auth/roles.guard';
 import { LoggingInterceptor } from './httpLogger';
@@ -15,7 +15,9 @@ async function bootstrap() {
   });
   app.useGlobalInterceptors(new LoggingInterceptor());
   app.useGlobalFilters(new AllExceptionsFilter());
-
+  app.enableVersioning({
+    type: VersioningType.URI,
+  });
   app.setGlobalPrefix(config.prefix);
   app.useGlobalPipes(
     new ValidationPipe({
