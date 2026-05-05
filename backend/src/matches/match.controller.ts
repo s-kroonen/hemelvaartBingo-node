@@ -42,11 +42,11 @@ export class MatchController {
   }
   @Get() // GET /matches (All matches for the user)
   async getMyMatches(@Req() req) {
-    return this.matchService.getPlayerMatches(req.user.dbUser._id);
+    return this.matchService.getUserMatchesWithRoles(req.user.dbUser._id);
   }
   @Post()
-  async createMatch(@Body() dto: CreateMatchDto) {
-    return this.matchService.createMatch(dto);
+  async createMatchForUser(@Req() req, @Body() dto: CreateMatchDto) {
+    return this.matchService.createMatchForUser(req.user.dbUser._id, dto);
   }
 
   @UseGuards(IsMasterGuard)
@@ -59,7 +59,7 @@ export class MatchController {
     return this.matchService.updateMatch(req.match._id, dto);
   }
 }
-@Controller('matches/:matchId/participants')
+@Controller({ path: 'matches/:matchId/participants', version: '1' })
 @UseGuards(FirebaseAuthGuard, IsMasterGuard)
 export class ParticipantController {
   constructor(

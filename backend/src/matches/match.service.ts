@@ -4,22 +4,56 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { MatchRepository } from './match.repository';
-import { Match } from './match.schema';
+import { CreateMatchDto, Match } from './match.schema';
 
-import { Types } from 'mongoose';
+import { Document, Types } from 'mongoose';
 import { UserService } from '../users/user.service';
 
 @Injectable()
 export class MatchService {
-  constructor(private repo: MatchRepository,
-  private userService: UserService,) {}
-
+  constructor(
+    private repo: MatchRepository,
+    private userService: UserService,
+  ) {}
+  async getMatchesByMaster(masterId: Types.ObjectId) {
+    return this.repo.findByMaster(masterId);
+  }
   async getPlayerMatches(userId: Types.ObjectId): Promise<Match[]> {
     return this.repo.findByPlayer(userId);
+  }
+  async getUserMatches(userId: Types.ObjectId): Promise<Match[]> {
+    return this.repo.findByUser(userId);
+  }
+  // match.service.ts
+  async getUserMatchesWithRoles(userId: Types.ObjectId) {
+    const matches = await this.repo.findByUser(userId);
+
+    return matches.map((match) => {
+      // Determine the role
+      const isMaster = match.masters.some((id) => id.equals(userId));
+      const isPlayer = match.players.some((id) => id.equals(userId));
+
+      let role = 'none';
+      if (isMaster) role = 'master';
+      else if (isPlayer) role = 'player';
+
+      // Return a combined object
+      // Use .toObject() if match is a Mongoose Document to avoid circular JSON issues
+      return {
+        ...(match instanceof Document ? match.toJSON() : match),
+        roleInMatch: role,
+      };
+    });
   }
 
   async createMatch(data: any) {
     return this.repo.create(data);
+  }
+
+  async createMatchForUser(userId: Types.ObjectId, data: any) {
+    const newMatch = await this.repo.create(data);
+
+    return this.repo.addMaster(newMatch._id, userId);
   }
 
   async findById(id: string | Types.ObjectId) {
@@ -35,6 +69,9 @@ export class MatchService {
   }
 
   async addMaster(matchId: string, userId: string) {
+    const user = await this.userService.findById(userId);
+    if (!user) throw new NotFoundException(`User with id ${userId} not found`);
+
     const match = await this.repo.findById(matchId);
 
     if (!match) {
@@ -49,33 +86,24 @@ export class MatchService {
       throw new BadRequestException('User is already a master');
     }
 
-    return this.repo.addMaster(matchId, userId);
+    return this.repo.addMaster(match._id, user._id);
   }
 
   async removeMaster(matchId: string, userId: string) {
+    const user = await this.userService.findById(userId);
+    if (!user) throw new NotFoundException(`User with id ${userId} not found`);
+
     const match = await this.repo.findById(matchId);
 
     if (!match) {
       throw new NotFoundException('Match not found');
     }
 
-    return this.repo.removeMaster(matchId, userId);
+    return this.repo.removeMaster(match._id, user._id);
   }
 
   async delete(matchId: Types.ObjectId) {
     return this.repo.delete(matchId);
-  }
-
-  async getMatchesByMaster(masterId: Types.ObjectId) {
-    return this.repo.findByMaster(masterId);
-  }
-
-  async updateMatchName(id: string, name: string) {
-    return this.repo.updateName(id, name);
-  }
-
-  async updateMatchDates(_id: any, startDate: string, endDate: string) {
-    return this.repo.updateDates(_id, startDate, endDate);
   }
 
   async removePlayer(matchId: Types.ObjectId, userId: Types.ObjectId) {

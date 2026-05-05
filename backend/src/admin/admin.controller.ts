@@ -28,7 +28,7 @@ import { MatchService } from '../matches/match.service';
 import { UserService } from '../users/user.service';
 import { CardService } from '../cards/card.service';
 
-@Controller('admin')
+@Controller({ path: 'admin', version: '1' })
 @UseGuards(FirebaseAuthGuard, RolesGuard)
 @Roles(Role.ADMIN)
 export class AdminController {

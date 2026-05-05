@@ -22,7 +22,7 @@ import { CreateEventDto, UpdateEventDto } from '../events/event.schema';
 import { UserService } from '../users/user.service';
 import { InviteService } from '../invites/invite.service';
 
-@Controller('master')
+@Controller({ path: 'master', version: '1' })
 @UseGuards(FirebaseAuthGuard, RolesGuard)
 @Roles(Role.MASTER)
 export class MasterController {
