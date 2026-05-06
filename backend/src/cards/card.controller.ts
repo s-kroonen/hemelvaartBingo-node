@@ -2,7 +2,7 @@ import {
   Body,
   Controller,
   Get,
-  NotFoundException,
+  NotFoundException, Param,
   Patch,
   Post,
   Put,
@@ -17,6 +17,7 @@ import { MatchService } from '../matches/match.service';
 import {RolesGuard} from "../auth/roles.guard";
 import {Roles} from "../auth/roles.decorator";
 import {Role} from "../users/user.schema";
+import {BingoResultDto} from "../matches/match.schema";
 
 @Controller({ path: 'cards', version: '1' })
 @UseGuards(FirebaseAuthGuard)
@@ -64,5 +65,14 @@ export class CardController {
       body.cellId,
       body.isChecked,
     );
+  }
+  @Post(':cardId/bingo')
+  @UseGuards(FirebaseAuthGuard)
+  async checkBingo(
+      @Param('cardId') cardId: string,
+      @Body('matchId') matchId: string,
+      @Req() req
+  ): Promise<BingoResultDto> {
+    return this.cardService.verifyBingo(matchId, cardId, req.user.dbUser._id);
   }
 }

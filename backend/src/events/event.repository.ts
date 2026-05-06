@@ -8,6 +8,19 @@ export class EventRepository {
     constructor(@InjectModel(BingoEvent.name) private model: Model<BingoEvent>) {
     }
 
+    async findLatestCalled(matchId: string) {
+        return this.model.findOne({
+            matchId: new Types.ObjectId(matchId),
+            isCalled: true
+        }, { sort: { calledAt: -1 } });
+    }
+
+    async findCalledHistory(matchId: string) {
+        return this.model.find({
+            matchId: new Types.ObjectId(matchId),
+            isCalled: true
+        }, { sort: { calledAt: -1 } });
+    }
     async create(data: Partial<BingoEvent>) {
         return this.model.create(data);
     }

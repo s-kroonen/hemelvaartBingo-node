@@ -112,4 +112,11 @@ export class EventService {
     const all = Array.from({ length: 75 }, (_, i) => i + 1);
     return all.filter((n) => !called.includes(n));
   }
+  async getLatestCalled(matchId: string) {
+    return this.eventRepo.findLatestCalled(matchId);
+  }
+
+  async getCalledHistory(matchId: string) {
+    return this.eventRepo.findCalledHistory(matchId);
+  }
 }

@@ -12,6 +12,13 @@ import {
   IsString,
 } from 'class-validator';
 import { UserSchema } from '../users/user.schema';
+
+export class BingoResultDto {
+  isValid: boolean;
+  message: string;
+  prize?: string;
+}
+
 export enum MatchStatus {
   DRAFT = 'DRAFT',
   ACTIVE = 'ACTIVE',
@@ -104,5 +111,4 @@ export class UpdateMatchDto {
   @IsOptional()
   @IsBoolean()
   autoNumberDistribution: boolean;
-
 }

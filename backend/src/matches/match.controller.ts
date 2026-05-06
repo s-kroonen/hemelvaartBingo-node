@@ -12,7 +12,7 @@ import {
   Req,
   UseGuards,
 } from '@nestjs/common';
-import { CreateMatchDto, UpdateMatchDto } from './match.schema';
+import {BingoResultDto, CreateMatchDto, UpdateMatchDto} from './match.schema';
 import { IsMasterGuard } from '../auth/isMaster.guard';
 import { CardService } from '../cards/card.service';
 import { UserService } from '../users/user.service';
@@ -50,7 +50,7 @@ export class MatchController {
   }
 
   @UseGuards(IsMasterGuard)
-  @Put('/:matchId')
+  @Put(':matchId')
   async updateMatch(
     @Req() req,
     @Param('matchId') matchId: string,
@@ -58,6 +58,7 @@ export class MatchController {
   ) {
     return this.matchService.updateMatch(req.match._id, dto);
   }
+
 }
 @Controller({ path: 'matches/:matchId/participants', version: '1' })
 @UseGuards(FirebaseAuthGuard, IsMasterGuard)
