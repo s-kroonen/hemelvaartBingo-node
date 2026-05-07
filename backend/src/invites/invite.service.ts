@@ -72,7 +72,7 @@ export class InviteService {
       await this.cardService.createCard(
         userId.toString(),
         matchId.toString(),
-        match.cardSize,
+        match.mode,
       );
     }
 

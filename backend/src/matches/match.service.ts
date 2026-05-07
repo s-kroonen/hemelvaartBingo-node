@@ -8,6 +8,7 @@ import { CreateMatchDto, Match } from './match.schema';
 
 import { Document, Types } from 'mongoose';
 import { UserService } from '../users/user.service';
+import { BingoMode } from '../shared/BingoConfig';
 
 @Injectable()
 export class MatchService {
@@ -50,9 +51,12 @@ export class MatchService {
     return this.repo.create(data);
   }
 
-  async createMatchForUser(userId: Types.ObjectId, data: any) {
-    const newMatch = await this.repo.create(data);
+  async createMatchForUser(userId: Types.ObjectId, data: CreateMatchDto) {
 
+    if (!Object.values(BingoMode).includes(data.mode)) {
+      throw new BadRequestException(`The bingo mode ${data.mode} is not supported yet.`);
+    }
+    const newMatch = await this.repo.create(data);
     return this.repo.addMaster(newMatch._id, userId);
   }
 

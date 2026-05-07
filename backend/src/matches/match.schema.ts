@@ -12,6 +12,7 @@ import {
   IsString,
 } from 'class-validator';
 import { UserSchema } from '../users/user.schema';
+import { BingoMode } from '../shared/BingoConfig';
 
 export class BingoResultDto {
   isValid: boolean;
@@ -30,20 +31,18 @@ export class Match {
   @Prop()
   name: string;
 
-  @Prop()
-  startDate: Date;
-
-  @Prop()
-  endDate: Date;
-
   @Prop({ type: [{ type: Types.ObjectId, ref: 'User' }] })
   masters: Types.ObjectId[];
 
   @Prop({ type: [{ type: Types.ObjectId, ref: 'User' }] })
   players: Types.ObjectId[];
 
-  @Prop({ default: 5 })
-  cardSize: number;
+  @Prop({
+    type: String,
+    enum: BingoMode,
+    default: BingoMode.BINGO_75
+  })
+  mode: BingoMode;
 
   @Prop()
   status: MatchStatus;
@@ -70,17 +69,18 @@ export class CreateMatchDto {
   @IsString()
   name: string;
 
-  @IsDateString()
-  startDate: string;
-
-  @IsDateString()
-  endDate: string;
-
-  @IsNumber()
-  cardSize: number;
-
   @IsEnum(MatchStatus, { each: true })
   status: MatchStatus;
+  @IsEnum(BingoMode) // Strict validation
+  mode: BingoMode;
+  @IsOptional()
+  @IsNumber()
+  @IsPositive()
+  numbersPerEvent: number;
+
+  @IsOptional()
+  @IsBoolean()
+  autoNumberDistribution: boolean;
 }
 export class UpdateMatchDto {
   @IsOptional()
@@ -88,16 +88,8 @@ export class UpdateMatchDto {
   name: string;
 
   @IsOptional()
-  @IsDateString()
-  startDate: string;
-
-  @IsOptional()
-  @IsDateString()
-  endDate: string;
-
-  @IsOptional()
-  @IsNumber()
-  cardSize: number;
+  @IsEnum(BingoMode)
+  mode: BingoMode;
 
   @IsOptional()
   @IsEnum(MatchStatus, { each: true })

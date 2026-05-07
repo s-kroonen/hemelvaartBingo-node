@@ -6,6 +6,7 @@ import {Card} from './card.schema';
 import {UserService} from '../users/user.service';
 import {MatchService} from '../matches/match.service';
 import {BingoResultDto} from "../matches/match.schema";
+import { BingoMode } from '../shared/BingoConfig';
 
 @Injectable()
 export class CardService {
@@ -16,7 +17,7 @@ export class CardService {
     ) {
     }
 
-    async createCard(userId: string, matchId: string, size: number) {
+    async createCard(userId: string, matchId: string, size: BingoMode) {
         const cells = generateBingoCells(size);
 
         return this.cardRepo.create({
@@ -64,7 +65,7 @@ export class CardService {
                 `Card not found for user ${userId} and match ${effectiveMatchId}`,
             );
 
-        const cells = generateBingoCells(match.cardSize);
+        const cells = generateBingoCells(match.mode);
 
         return this.cardRepo.updateCard(card.id, {cells});
     }
@@ -102,7 +103,7 @@ export class CardService {
         }
 
         // 3. Pattern Recognition (Rows, Columns, Diagonals)
-        const isWinner = this.checkPatterns(card.cells, match.cardSize);
+        const isWinner = this.checkPatterns(card.cells, match.mode);
 
         if (isWinner) {
             return {
@@ -115,7 +116,7 @@ export class CardService {
         return {isValid: false, message: "Not a bingo yet. Keep playing!"};
     }
 
-    private checkPatterns(cells: any[], size: number): boolean {
+    private checkPatterns(cells: any[], mode: BingoMode): boolean {
         // Logic to check 5x5 (or 'size' x 'size') grid for a full line
         // Implementation depends on how your 'cells' are stored (index-based)
         return true; // Simplified for now
