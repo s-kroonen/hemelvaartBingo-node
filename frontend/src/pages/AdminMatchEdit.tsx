@@ -7,7 +7,7 @@ import {Input} from "../components/ui/input";
 import {Badge} from "../components/ui/badge";
 import {ArrowLeft, Save, Plus, Trash2, Copy, ToggleLeft, ToggleRight} from "lucide-react";
 import {toast} from "sonner";
-import {type Match, MatchStatus, type Invite, type User} from "../types";
+import {type Match, MatchStatus, type Invite, type User, BingoMode} from "../types";
 import {
     getMatch,
     updateMatch,
@@ -27,18 +27,17 @@ export default function AdminMatchEdit() {
     const isNew = id === "new";
 
     const [name, setName] = useState("");
-    const [startDate, setStartDate] = useState("");
-    const [endDate, setEndDate] = useState("");
-    const [cardSize, setCardSize] = useState(5);
+    const [mode, setMode] = useState<BingoMode>(BingoMode.BINGO_75);
     const [status, setStatus] = useState<MatchStatus>(MatchStatus.DRAFT);
     const [selectedMasterToAdd, setSelectedMasterToAdd] = useState("");
 
     const statusOptions = Object.values(MatchStatus);
+    const modeOptions = Object.values(BingoMode);
 
     // Fetch match data
     const {data: match, isLoading} = useQuery({
         queryKey: ["match", id],
-        queryFn: () => getMatch(id!),
+        queryFn: ():Promise<Match> => getMatch(id!),
         enabled: !isNew,
     });
 
@@ -145,32 +144,26 @@ export default function AdminMatchEdit() {
     useEffect(() => {
         if (match) {
             setName(match.name);
-            setStartDate(match.startDate.split("T")[0]);
-            setEndDate(match.endDate.split("T")[0]);
-            setCardSize(match.cardSize || 5);
+            setMode(match.mode || BingoMode.BINGO_75);
             setStatus(match.status);
         }
     }, [match]);
 
     const handleSave = () => {
-        if (!name || !startDate || !endDate) {
-            toast.error("Name, start date, and end date are required");
+        if (!name) {
+            toast.error("Name, is required");
             return;
         }
         if (isNew) {
             createMutation.mutate({
                 name,
-                startDate: new Date(startDate).toISOString(),
-                endDate: new Date(endDate).toISOString(),
-                cardSize,
+                mode,
                 status,
             });
         } else {
             updateMutation.mutate({
                 name,
-                startDate: new Date(startDate).toISOString(),
-                endDate: new Date(endDate).toISOString(),
-                cardSize,
+                mode,
                 status,
             });
         }
@@ -216,35 +209,19 @@ export default function AdminMatchEdit() {
                         />
                     </div>
 
-                    <div className="grid grid-cols-2 gap-4">
-                        <div>
-                            <label className="block text-sm font-medium mb-1">Start Date</label>
-                            <Input
-                                type="date"
-                                value={startDate}
-                                onChange={(e) => setStartDate(e.target.value)}
-                            />
-                        </div>
-
-                        <div>
-                            <label className="block text-sm font-medium mb-1">End Date</label>
-                            <Input
-                                type="date"
-                                value={endDate}
-                                onChange={(e) => setEndDate(e.target.value)}
-                            />
-                        </div>
-                    </div>
-
                     <div>
-                        <label className="block text-sm font-medium mb-1">Card Size (default 5 for 5x5)</label>
-                        <Input
-                            type="number"
-                            min="3"
-                            max="10"
-                            value={cardSize}
-                            onChange={(e) => setCardSize(parseInt(e.target.value) || 5)}
-                        />
+                        <label className="block text-sm font-medium mb-1">Bingo Mode (default 75 for 25)</label>
+                        <select
+                        value={mode}
+                        onChange={(e) => setMode(e.target.value as BingoMode)}
+                        className="w-full border rounded p-2"
+                    >
+                        {modeOptions.map((s) => (
+                            <option key={s} value={s}>
+                                {s}
+                            </option>
+                        ))}
+                    </select>
                     </div>
 
                     <div>

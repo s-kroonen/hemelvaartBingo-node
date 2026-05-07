@@ -134,12 +134,6 @@ export default function AdminDashboard() {
                                         >
                                             <div>
                                                 <div className="font-medium">{m.name}</div>
-                                                {m.startDate && m.endDate && (
-                                                    <div className="text-sm text-gray-500">
-                                                        {new Date(m.startDate).toLocaleDateString()} -{" "}
-                                                        {new Date(m.endDate).toLocaleDateString()}
-                                                    </div>
-                                                )}
                                                 <div className="text-sm text-gray-600 mt-1">
                                                     {m.masters?.length || 0} masters • {m.players?.length || 0} players
                                                 </div>

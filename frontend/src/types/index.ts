@@ -68,15 +68,18 @@ export type AwardType = typeof AwardType[keyof typeof AwardType];
 export interface Match {
     id: string;
     name: string;
-    startDate: string;
-    endDate: string;
     masters: User[];
     players: User[];
     status: MatchStatus;
-    cardSize: number; // Default 5 for 5x5 grid
+    mode: BingoMode; // Default 5 for 5x5 grid
     settings?: MatchSettings;
 }
 
+export const BingoMode = {
+    BINGO_75: 'BINGO_75',
+    BINGO_90: 'BINGO_90',
+}
+export type BingoMode = typeof BingoMode[keyof typeof BingoMode];
 export const MatchStatus = {
     DRAFT: "DRAFT",
     ACTIVE: "ACTIVE",
@@ -101,6 +104,7 @@ export interface Invite {
     createdAt: string;
     metadata?: InviteMetadata;
 }
+
 export interface InviteMetadata {
     watchAdBeforeJoin?: boolean;
     joinAsRole?: "user" | "master" | "admin";
