@@ -8,19 +8,26 @@ export class EventRepository {
     constructor(@InjectModel(BingoEvent.name) private model: Model<BingoEvent>) {
     }
 
-    async findLatestCalled(matchId: string) {
-        return this.model.findOne({
-            matchId: new Types.ObjectId(matchId),
-            isCalled: true
-        }, { sort: { calledAt: -1 } });
+    async findLatestCalled(matchId: Types.ObjectId) {
+        return this.model
+            .findOne({
+                matchId: matchId,
+                called: true
+            })
+            .sort({calledAt: -1}) // Chain the sort here
+            .exec(); // Use .exec() to return a real Promise
     }
 
-    async findCalledHistory(matchId: string) {
-        return this.model.find({
-            matchId: new Types.ObjectId(matchId),
-            isCalled: true
-        }, { sort: { calledAt: -1 } });
+    async findCalledHistory(matchId: Types.ObjectId) {
+        return this.model
+            .find({
+                matchId: matchId,
+                called: true
+            })
+            .sort({calledAt: -1}) // Newest first
+            .exec();
     }
+
     async create(data: Partial<BingoEvent>) {
         return this.model.create(data);
     }

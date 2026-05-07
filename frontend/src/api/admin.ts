@@ -142,3 +142,28 @@ export const deleteInvite = async (id: string) => {
     const response = await api.delete(`/admin/invites/${id}`);
     return response.data;
 };
+
+export const getAds = async () => {
+    const res = await api.get("/admin/ads");
+    return res.data;
+};
+
+export const getAd = async (id: string) => {
+    const res = await api.get(`/admin/ads/${id}`);
+    return res.data;
+};
+
+export const createAd = async (data: any) => {
+    const res = await api.post("/admin/ads", data);
+    return res.data;
+};
+
+export const updateAd = async (id: string, data: any) => {
+    const res = await api.put(`/admin/ads/${id}`, data);
+    return res.data;
+};
+
+export const deleteAd = async (id: string) => {
+    const res = await api.delete(`/admin/ads/${id}`);
+    return res.data;
+};

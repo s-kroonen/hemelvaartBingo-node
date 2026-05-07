@@ -1,10 +1,10 @@
-import {useQuery} from "@tanstack/react-query";
-import {getUsers, getMatches, getInvites} from "../api/admin";
+import {useMutation, useQuery, useQueryClient} from "@tanstack/react-query";
+import {getUsers, getMatches, getInvites, getAds, deleteAd} from "../api/admin";
 import {Card, CardContent, CardHeader, CardTitle} from "../components/ui/card";
 import {Badge} from "../components/ui/badge";
 import {Button} from "../components/ui/button";
 import {Tabs, TabsContent, TabsList, TabsTrigger} from "../components/ui/tabs";
-import {Users, Calendar, Mail, Plus, Edit} from "lucide-react";
+import {Users, Calendar, Mail, Plus, Edit, Trash2, ExternalLink, Video} from "lucide-react";
 import {useNavigate} from "react-router";
 import type {User, Match, Invite} from "../types";
 
@@ -13,7 +13,19 @@ export default function AdminDashboard() {
     const users = useQuery({queryKey: ["users"], queryFn: getUsers});
     const matches = useQuery({queryKey: ["matches"], queryFn: getMatches});
     const invites = useQuery({queryKey: ["invites"], queryFn: getInvites});
+    const queryClient = useQueryClient();
 
+    const ads = useQuery({
+        queryKey: ["ads"],
+        queryFn: getAds,
+    });
+
+    const deleteMutation = useMutation({
+        mutationFn: deleteAd,
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ["ads"] });
+        },
+    });
     return (
         <div className="container mx-auto p-6 space-y-6">
             <div className="flex items-center justify-between mb-6">
@@ -21,7 +33,7 @@ export default function AdminDashboard() {
             </div>
 
             <Tabs defaultValue="users" className="w-full">
-                <TabsList className="grid w-full grid-cols-3">
+                <TabsList className="grid w-full grid-cols-4">
                     <TabsTrigger value="users">
                         <Users className="w-4 h-4 mr-2"/>
                         Users
@@ -33,6 +45,10 @@ export default function AdminDashboard() {
                     <TabsTrigger value="invites">
                         <Mail className="w-4 h-4 mr-2"/>
                         Invites
+                    </TabsTrigger>
+                    <TabsTrigger value="ads">
+                        <Video className="w-4 h-4 mr-2"/>
+                        Ads
                     </TabsTrigger>
                 </TabsList>
 
@@ -62,7 +78,8 @@ export default function AdminDashboard() {
                                         >
                                             <div>
                                                 <div className="font-medium">{u.email}</div>
-                                                {u.username && <div className="text-sm text-gray-500">{u.username}</div>}
+                                                {u.username &&
+                                                    <div className="text-sm text-gray-500">{u.username}</div>}
                                             </div>
                                             <div className="flex items-center gap-2">
                                                 <div className="flex gap-1">
@@ -190,6 +207,81 @@ export default function AdminDashboard() {
                                                         <Edit className="w-4 h-4"/>
                                                     </Button>
                                                 </div>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                        </CardContent>
+                    </Card>
+                </TabsContent>
+                <TabsContent value="ads" className="space-y-4">
+                    <div className="flex justify-end">
+                        <Button onClick={() => navigate("/admin/ads/new")}>
+                            <Plus className="w-4 h-4 mr-2"/>
+                            Create Ad
+                        </Button>
+                    </div>
+
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>All Ads</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                            {ads.isLoading && <div>Loading ads...</div>}
+                            {ads.error && <div className="text-red-500">Failed to load ads</div>}
+
+                            {ads.data && (
+                                <div className="space-y-2">
+                                    {ads.data.map((ad: any) => (
+                                        <div
+                                            key={ad.id}
+                                            className="border p-4 rounded-lg flex items-center justify-between hover:bg-gray-50"
+                                        >
+                                            <div>
+                                                <div className="font-medium">{ad.name}</div>
+                                                <div className="text-sm text-gray-500">
+                                                    {ad.type} • {ad.forcedWatchTime}s
+                                                </div>
+
+                                                <div className="flex gap-1 mt-1 flex-wrap">
+                                                    {ad.placementTags?.map((tag: string) => (
+                                                        <Badge key={tag}>{tag}</Badge>
+                                                    ))}
+                                                </div>
+                                            </div>
+
+                                            <div className="flex items-center gap-2">
+                                                <Badge variant={ad.isActive ? "default" : "secondary"}>
+                                                    {ad.isActive ? "Active" : "Inactive"}
+                                                </Badge>
+
+                                                {/* Open URL */}
+                                                <Button
+                                                    variant="ghost"
+                                                    size="sm"
+                                                    onClick={() => window.open(ad.url, "_blank")}
+                                                >
+                                                    <ExternalLink className="w-4 h-4"/>
+                                                </Button>
+
+                                                {/* Edit */}
+                                                <Button
+                                                    variant="ghost"
+                                                    size="sm"
+                                                    onClick={() => navigate(`/admin/ads/${ad.id}`)}
+                                                >
+                                                    <Edit className="w-4 h-4"/>
+                                                </Button>
+
+                                                {/* Delete */}
+                                                <Button
+                                                    variant="ghost"
+                                                    size="sm"
+                                                    onClick={() => deleteMutation.mutate(ad.id)}
+                                                >
+                                                    <Trash2 className="w-4 h-4 text-red-500"/>
+                                                </Button>
                                             </div>
                                         </div>
                                     ))}

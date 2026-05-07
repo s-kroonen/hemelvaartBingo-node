@@ -78,6 +78,7 @@ export class EventService {
     // update match + event
     match.calledNumbers.push(...newNumbers);
     event.numbers.push(...newNumbers);
+    event.calledAt = new Date(Date.now());
 
     await match.save();
     await event.save();
@@ -101,6 +102,7 @@ export class EventService {
     // clear event numbers
     event.numbers = [];
     event.called = false;
+    event.calledAt = undefined;
 
     await match.save();
     await event.save();
@@ -113,10 +115,14 @@ export class EventService {
     return all.filter((n) => !called.includes(n));
   }
   async getLatestCalled(matchId: string) {
-    return this.eventRepo.findLatestCalled(matchId);
+    const match = await this.matchService.findById(matchId);
+    if (!match) throw new NotFoundException(`Match with id ${matchId} not found`);
+    return this.eventRepo.findLatestCalled(match._id);
   }
 
   async getCalledHistory(matchId: string) {
-    return this.eventRepo.findCalledHistory(matchId);
+    const match = await this.matchService.findById(matchId);
+    if (!match) throw new NotFoundException(`Match with id ${matchId} not found`);
+    return this.eventRepo.findCalledHistory(match._id);
   }
 }

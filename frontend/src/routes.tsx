@@ -11,6 +11,7 @@ import AdminInviteEdit from "@/pages/AdminInviteEdit.tsx";
 import InviteJoin from "@/pages/InviteJoin.tsx";
 import ProfilePage from "@/pages/ProfilePage.tsx";
 import PrivacyPolicy from "@/pages/PrivacyPolicy.tsx";
+import AdminAdEdit from "@/pages/AdminAdEdit.tsx";
 
 // Protected Route Component
 function ProtectedRoute({
@@ -91,6 +92,20 @@ export const router = createBrowserRouter([
                         <AdminInviteEdit/>
                     </ProtectedRoute>
                 ),
+            },
+            // {
+            //     path: "/admin/ads/new", element: (
+            //
+            //         <ProtectedRoute requiredRole="admin">
+            //             <AdminAdEdit/>
+            //         </ProtectedRoute>)
+            // },
+            {
+                path: "/admin/ads/:id", element: (
+
+                    <ProtectedRoute requiredRole="admin">
+                        <AdminAdEdit/>
+                    </ProtectedRoute>)
             },
             {
                 path: "master",

@@ -5,6 +5,7 @@ import {MatchService} from '../matches/match.service';
 import {UserService} from '../users/user.service';
 import {Role} from '../users/user.schema';
 import {CardService} from "../cards/card.service";
+import {CreateAdDto} from "../ads/ad.shema";
 
 @Injectable()
 export class AdminService {
@@ -35,5 +36,9 @@ export class AdminService {
         const match = await this.matchService.findById(user.currentMatchID);
         if (!match) return null;
         return this.cardService.findByUserAndMatch(user._id, match._id);
+    }
+
+    create(dto: CreateAdDto) {
+        return Promise.resolve(undefined);
     }
 }
