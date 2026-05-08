@@ -30,7 +30,6 @@ export class CardController {
 
   @Get('my-card')
   async getMyCard(@Req() req) {
-    console.log(req.user.dbUser._id);
     const user = await this.userService.findById(req.user.dbUser._id);
     if (!user) throw new NotFoundException('User not found');
     const match = await this.matchService.findById(user.currentMatchID);

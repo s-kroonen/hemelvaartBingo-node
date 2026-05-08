@@ -66,7 +66,6 @@ export class InviteService {
       userId,
       matchId,
     );
-    console.log(existingCard);
 
     if (!existingCard) {
       await this.cardService.createCard(

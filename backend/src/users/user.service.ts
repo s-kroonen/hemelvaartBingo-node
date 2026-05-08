@@ -1,16 +1,19 @@
 import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { UserRepository } from './user.repository';
 import { Types } from 'mongoose';
-import {CreateUserDto, Role, UpdateUserAdminDto, UpdateUserDto} from './user.schema';
+import {
+  CreateUserDto,
+  Role,
+  UpdateUserAdminDto,
+  UpdateUserDto,
+} from './user.schema';
 import { MatchService } from '../matches/match.service';
 import { CardService } from '../cards/card.service';
 import { generateBingoCells } from '../shared/bingo.util';
 
 @Injectable()
 export class UserService {
-  constructor(
-    private repo: UserRepository,
-  ) {}
+  constructor(private repo: UserRepository) {}
 
   async updateCurrentMatch(userId: string, matchId: string) {
     return this.repo.findByIdAndUpdate(
@@ -85,18 +88,38 @@ export class UserService {
   }
 
   async updateUser(id: string, dto: UpdateUserAdminDto | UpdateUserDto) {
-    const update: any = { ...dto };
+    const update: any = {};
+    const $set: Record<string, any> = {};
 
-    // handle partial settings update
-    if (dto.settings) {
-      update.$set = {};
-      for (const [key, value] of Object.entries(dto.settings)) {
-        update.$set[`settings.${key}`] = value;
+    // helper for nested partial updates
+    const applyNested = (field: string, obj: any) => {
+      for (const [key, value] of Object.entries(obj)) {
+        $set[`${field}.${key}`] = value;
       }
-      delete update.settings; // prevent overwrite
+    };
+
+    // handle nested objects
+    if (dto.settings) {
+      applyNested('settings', dto.settings);
     }
 
-    return this.repo.findByIdAndUpdate(id, update);
+    if (dto.tutorials) {
+      applyNested('tutorials', dto.tutorials);
+    }
+
+    // copy remaining flat fields
+    for (const [key, value] of Object.entries(dto)) {
+      if (key !== 'settings' && key !== 'tutorials') {
+        update[key] = value;
+      }
+    }
+
+    // attach $set if used
+    if (Object.keys($set).length > 0) {
+      update.$set = $set;
+    }
+
+    return this.repo.findByIdAndUpdate(id, update, { new: true });
   }
 
   async deleteUser(id: string) {
