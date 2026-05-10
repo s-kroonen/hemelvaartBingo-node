@@ -3,9 +3,11 @@ import { Types } from 'mongoose';
 import { EventRepository } from './event.repository';
 import { CreateEventDto, UpdateEventDto } from './event.schema';
 import { MatchService } from '../matches/match.service';
+import {NotificationService} from "../notifications/notification.service";
 
 @Injectable()
 export class EventService {
+    private notificationService: NotificationService;
   constructor(
     private eventRepo: EventRepository,
     private matchService: MatchService,
@@ -82,6 +84,21 @@ export class EventService {
 
     await match.save();
     await event.save();
+      // 2. Flatten all tokens from all players into one list
+      const allPlayerTokens = match.players
+          .map((player: any) => player.fcmTokens)
+          .flat()
+          .filter(token => !!token); // Remove null/undefined
+
+      // 3. Send Notification
+      if (allPlayerTokens.length > 0) {
+          await this.notificationService.sendToUsers(
+              allPlayerTokens,
+              'New Number Called!',
+              'Check your bingo card for the latest update!',
+              { matchId: matchId.toString(), type: 'NEW_NUMBER' }
+          );
+      }
 
     return { newNumbers };
   }

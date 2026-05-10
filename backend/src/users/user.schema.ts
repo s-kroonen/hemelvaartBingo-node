@@ -53,6 +53,9 @@ export class User {
     playerSeen: boolean;
     masterSeen: boolean;
   };
+  
+  @Prop({ type: [String], default: [] })
+  fcmTokens: string[];
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);
