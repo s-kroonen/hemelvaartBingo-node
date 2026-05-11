@@ -11,6 +11,7 @@ import {Logger, UseGuards} from '@nestjs/common';
 
 @WebSocketGateway({
     cors: {origin: '*'},
+    path: '/socket.io',
     transports: ['websocket'],// Adjust for production
 })
 export class MatchGateway implements OnGatewayConnection {
