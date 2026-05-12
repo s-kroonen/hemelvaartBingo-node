@@ -9,6 +9,7 @@ import {MasterModule} from './master/master.module';
 import {InviteModule} from './invites/invite.module';
 import {EventModule} from './events/event.module';
 import {AdModule} from "./ads/ad.module";
+import {MediaProxyModule} from "./media-proxy/media-proxy.module";
 
 @Module({
     imports: [
@@ -21,6 +22,7 @@ import {AdModule} from "./ads/ad.module";
         MasterModule,
         EventModule,
         AdModule,
+        MediaProxyModule
     ],
 })
 export class AppModule {

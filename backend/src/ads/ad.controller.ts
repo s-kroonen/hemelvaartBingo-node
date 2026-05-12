@@ -14,7 +14,9 @@ export class AdController {
 
     @Get('random')
     async getRandom(@Body('placement') placement: string) {
-        return this.adService.getRandomAd(placement);
+        const ad = await this.adService.getRandomAd(placement);
+        console.log(ad.url);
+        return ad;
     }
 }
 
