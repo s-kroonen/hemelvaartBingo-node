@@ -88,38 +88,38 @@ export class UserService {
   }
 
   async updateUser(id: string, dto: UpdateUserAdminDto | UpdateUserDto) {
-    const update: any = {};
     const $set: Record<string, any> = {};
+    const $addToSet: Record<string, any> = {};
 
-    // helper for nested partial updates
+    // 1. Handle FCM Token specifically
+    // We expect the frontend to send a single string 'fcmToken' in the DTO
+    if ((dto as any).fcmToken) {
+      $addToSet['fcmTokens'] = (dto as any).fcmToken;
+    }
+
+    // 2. Helper for nested partial updates (Settings/Tutorials)
     const applyNested = (field: string, obj: any) => {
       for (const [key, value] of Object.entries(obj)) {
         $set[`${field}.${key}`] = value;
       }
     };
 
-    // handle nested objects
-    if (dto.settings) {
-      applyNested('settings', dto.settings);
-    }
+    if (dto.settings) applyNested('settings', dto.settings);
+    if (dto.tutorials) applyNested('tutorials', dto.tutorials);
 
-    if (dto.tutorials) {
-      applyNested('tutorials', dto.tutorials);
-    }
-
-    // copy remaining flat fields
+    // 3. Handle flat fields
     for (const [key, value] of Object.entries(dto)) {
-      if (key !== 'settings' && key !== 'tutorials') {
-        update[key] = value;
+      if (key !== 'settings' && key !== 'tutorials' && key !== 'fcmToken') {
+        $set[key] = value;
       }
     }
 
-    // attach $set if used
-    if (Object.keys($set).length > 0) {
-      update.$set = $set;
-    }
+    // 4. Construct the final update object
+    const finalUpdate: any = {};
+    if (Object.keys($set).length > 0) finalUpdate.$set = $set;
+    if (Object.keys($addToSet).length > 0) finalUpdate.$addToSet = $addToSet;
 
-    return this.repo.findByIdAndUpdate(id, update, { new: true });
+    return this.repo.findByIdAndUpdate(id, finalUpdate, { new: true });
   }
 
   async deleteUser(id: string) {

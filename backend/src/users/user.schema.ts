@@ -127,4 +127,7 @@ export class UpdateUserDto {
 
   @IsOptional()
   tutorials?: Tutorials;
+
+  @IsOptional()
+  fcmTokens: string[];
 }
