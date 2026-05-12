@@ -37,8 +37,11 @@ export class EventService {
             ...dto,
             matchId: new Types.ObjectId(matchId),
         };
-
-        return this.eventRepo.create(data);
+        const event = await this.eventRepo.create(data);
+        if (dto.autoCall) {
+            await this.callEvent(new Types.ObjectId(matchId), event.id);
+        }
+        return event;
     }
 
     async updateForMatch(
@@ -46,10 +49,16 @@ export class EventService {
         matchId: Types.ObjectId,
         eventId: Types.ObjectId,
     ) {
-        const data = {
+        const data: any = {
             ...dto,
             matchId: matchId,
         };
+
+        // null means explicitly clear — use $unset otherwise spread won't clear it
+        if (dto.manualNumbers === null) {
+            data.$unset = { manualNumbers: 1 };
+            delete data.manualNumbers;
+        }
         return this.eventRepo.update(eventId, data);
     }
 
@@ -60,35 +69,39 @@ export class EventService {
     async callEvent(matchId: Types.ObjectId, eventId: string | Types.ObjectId) {
         const match = await this.matchService.findById(matchId);
         const event = await this.eventRepo.findById(eventId);
-        if (!event)
-            throw new NotFoundException(`Event with id ${eventId} not found`);
-        if (!match)
-            throw new NotFoundException(`Match with id ${matchId} not found`);
+        if (!event) throw new NotFoundException(`Event with id ${eventId} not found`);
+        if (!match) throw new NotFoundException(`Match with id ${matchId} not found`);
+
         const alreadyCalled = match.calledNumbers || [];
-        const numbersPerEvent = match.numbersPerEvent;
-
-        const availableNumbers = this.getAvailableNumbers(alreadyCalled);
-
         const newNumbers: number[] = [];
 
-        for (let i = 0; i < numbersPerEvent; i++) {
-            if (availableNumbers.length === 0) break;
+        if (event.manualNumbers && event.manualNumbers.length > 0) {
+            // Use the manually set numbers — filter out any already called
+            const valid = event.manualNumbers.filter(n => !alreadyCalled.includes(n));
+            newNumbers.push(...valid);
+        } else {
+            // Original random logic
+            const availableNumbers = this.getAvailableNumbers(alreadyCalled);
+            const numbersPerEvent = match.numbersPerEvent;
 
-            const index = Math.floor(Math.random() * availableNumbers.length);
-            const num = availableNumbers.splice(index, 1)[0];
-
-            newNumbers.push(num);
+            for (let i = 0; i < numbersPerEvent; i++) {
+                if (availableNumbers.length === 0) break;
+                const index = Math.floor(Math.random() * availableNumbers.length);
+                const num = availableNumbers.splice(index, 1)[0];
+                newNumbers.push(num);
+            }
         }
-        event.called = true;
 
-        // update match + event
+        event.called = true;
         match.calledNumbers.push(...newNumbers);
         event.numbers.push(...newNumbers);
         event.calledAt = new Date(Date.now());
 
         await match.save();
         await event.save();
+
         this.matchGateway.emitEventUpdate(match.id, event.id, 'CALL');
+
         const allPlayerTokens = match.players
             .map((player: any) => player.fcmTokens)
             .flat()

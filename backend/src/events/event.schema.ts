@@ -38,6 +38,8 @@ export class BingoEvent {
   // Numbers assigned when called
   @Prop({ type: [Number], default: [] })
   numbers: number[];
+  @Prop({ type: [Number], default: [] })
+  manualNumbers: number[];
 }
 
 export const EventSchema = SchemaFactory.createForClass(BingoEvent);
@@ -61,6 +63,10 @@ export class CreateEventDto {
 
   @IsBoolean()
   autoCall: boolean;
+
+  @IsOptional()
+  @IsNumber({}, { each: true })
+  manualNumbers: number[];
 
 }
 export class UpdateEventDto {
@@ -94,4 +100,8 @@ export class UpdateEventDto {
   @IsOptional()
   @IsNumber()
   numbers: number[];
+
+  @IsOptional()
+  @IsNumber({}, { each: true })
+  manualNumbers: number[];
 }
