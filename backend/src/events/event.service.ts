@@ -4,6 +4,7 @@ import {EventRepository} from './event.repository';
 import {CreateEventDto, UpdateEventDto} from './event.schema';
 import {MatchService} from '../matches/match.service';
 import {NotificationService} from "../notifications/notification.service";
+import {MatchGateway} from "../matches/match.gateway";
 
 @Injectable()
 export class EventService {
@@ -11,6 +12,7 @@ export class EventService {
         private eventRepo: EventRepository,
         private matchService: MatchService,
         private notificationService: NotificationService,
+        private matchGateway: MatchGateway,
     ) {
     }
 
@@ -86,7 +88,7 @@ export class EventService {
 
         await match.save();
         await event.save();
-
+        this.matchGateway.emitEventUpdate(match.id, event.id, 'CALL');
         const allPlayerTokens = match.players
             .map((player: any) => player.fcmTokens)
             .flat()
@@ -125,6 +127,7 @@ export class EventService {
         await match.save();
         await event.save();
 
+        this.matchGateway.emitEventUpdate(match.id, event.id, 'RECALL');
         return {removedNumbers: eventNumbers};
     }
 
