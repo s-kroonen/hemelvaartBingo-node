@@ -61,7 +61,9 @@ export class MatchService {
   }
 
   async findById(id: string | Types.ObjectId) {
-    return this.repo.findById(id);
+    const match = await this.repo.findById(id);
+    if (!match) throw new NotFoundException(`Match with id ${id} not found`);
+    return match;
   }
 
   async findAll() {
