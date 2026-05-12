@@ -111,6 +111,7 @@ export class EventService {
 
         await match.save();
         await event.save();
+
         this.matchGateway.emitEventUpdate(match.id, event.id, 'RECALL');
         return {removedNumbers: eventNumbers};
     }
