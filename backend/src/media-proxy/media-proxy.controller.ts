@@ -13,6 +13,7 @@ import {Public} from "../auth/public.decorator"; // or use native fetch if Node 
 // Allowlist of trusted ad domains — prevents your proxy being abused
 const ALLOWED_HOSTS = [
     'i.imgur.com',
+    'imgur.com',
     // add more as needed
 ];
 @Public()
