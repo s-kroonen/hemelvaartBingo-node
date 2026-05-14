@@ -10,14 +10,16 @@ export class NotificationService {
         const message: admin.messaging.MulticastMessage = {
             tokens: tokens,
             notification: {title, body},
-            data: {
+            data: data && data.matchId ? {
                 matchId: String(data.matchId),
-                type: 'NEW_NUMBER'
+                type: data.type ?? 'ADMIN_MESSAGE',
+            } : {
+                type: 'ADMIN_MESSAGE',
             },
             webpush: {
                 notification: {
-                    icon: '/icons/icon-192.png', // Path to your PWA icon
-                    badge: '/icons/badge-72.png',
+                    icon: 'icon-512-maskable.png', // Path to your PWA icon
+                    badge: 'icon-512-maskable.png',
                 },
             },
         };

@@ -4,9 +4,10 @@ import {Card, CardContent, CardHeader, CardTitle} from "../components/ui/card";
 import {Badge} from "../components/ui/badge";
 import {Button} from "../components/ui/button";
 import {Tabs, TabsContent, TabsList, TabsTrigger} from "../components/ui/tabs";
-import {Users, Calendar, Mail, Plus, Edit, Trash2, ExternalLink, Video} from "lucide-react";
+import {Users, Calendar, Mail, Plus, Edit, Trash2, ExternalLink, Video, Bell} from "lucide-react";
 import {useNavigate} from "react-router";
 import type {User, Match, Invite} from "../types";
+import {NotificationsTab} from "@/pages/NotificationsTab.tsx";
 
 export default function AdminDashboard() {
     const navigate = useNavigate();
@@ -23,7 +24,7 @@ export default function AdminDashboard() {
     const deleteMutation = useMutation({
         mutationFn: deleteAd,
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ["ads"] });
+            queryClient.invalidateQueries({queryKey: ["ads"]});
         },
     });
     return (
@@ -33,7 +34,7 @@ export default function AdminDashboard() {
             </div>
 
             <Tabs defaultValue="users" className="w-full">
-                <TabsList className="grid w-full grid-cols-4">
+                <TabsList className="grid w-full grid-cols-5">
                     <TabsTrigger value="users">
                         <Users className="w-4 h-4 mr-2"/>
                         Users
@@ -50,17 +51,14 @@ export default function AdminDashboard() {
                         <Video className="w-4 h-4 mr-2"/>
                         Ads
                     </TabsTrigger>
+                    <TabsTrigger value="notifications">
+                        <Bell className="w-4 h-4 mr-2"/>
+                        Notifications
+                    </TabsTrigger>
                 </TabsList>
 
                 {/* Users Tab */}
                 <TabsContent value="users" className="space-y-4">
-                    <div className="flex justify-end">
-                        <Button onClick={() => navigate("/admin/users/new")}>
-                            <Plus className="w-4 h-4 mr-2"/>
-                            Create User
-                        </Button>
-                    </div>
-
                     <Card>
                         <CardHeader>
                             <CardTitle>All Users</CardTitle>
@@ -283,6 +281,9 @@ export default function AdminDashboard() {
                             )}
                         </CardContent>
                     </Card>
+                </TabsContent>
+                <TabsContent value="notifications" className="space-y-4">
+                    <NotificationsTab/>
                 </TabsContent>
             </Tabs>
         </div>

@@ -8,12 +8,13 @@ import {
     Delete,
     Put,
     NotFoundException,
+    BadRequestException,
+    Query,
 } from '@nestjs/common';
 import {FirebaseAuthGuard} from '../auth/firebase-auth.guard';
 import {RolesGuard} from '../auth/roles.guard';
 import {Roles} from '../auth/roles.decorator';
 import {AdminService} from './admin.service';
-import {IsEnum} from 'class-validator';
 import {
     CreateUserDto,
     Role,
@@ -21,13 +22,14 @@ import {
     UpdateUserAdminDto,
 } from '../users/user.schema';
 import {InviteService} from '../invites/invite.service';
-import {Types} from 'mongoose';
 import {CreateInviteDto, UpdateInviteDto} from '../invites/invite.schema';
 import {CreateMatchDto, UpdateMatchDto} from '../matches/match.schema';
 import {MatchService} from '../matches/match.service';
 import {UserService} from '../users/user.service';
 import {CardService} from '../cards/card.service';
-import {CreateAdDto} from "../ads/ad.shema";
+import {CreateAdDto} from '../ads/ad.shema';
+import {NotificationService} from '../notifications/notification.service';
+import {NotificationTarget, SendNotificationDto} from "../notifications/notification.schema";
 
 @Controller({path: 'admin', version: '1'})
 @UseGuards(FirebaseAuthGuard, RolesGuard)
@@ -40,10 +42,11 @@ export class AdminController {
         private matchService: MatchService,
         private userService: UserService,
         private cardService: CardService,
-    ) {
-    }
+        private notificationService: NotificationService,
+    ) {}
 
-    // USERS
+    // ─── USERS ───────────────────────────────────────────────────────────────
+
     @Get('users')
     getUsers() {
         return this.userService.getUsers();
@@ -74,11 +77,6 @@ export class AdminController {
         return this.userService.deleteUser(id);
     }
 
-    // @Post('users/:id/promote')
-    // promote(@Param('id') id: string) {
-    //   return this.service.promoteToAdmin(id);
-    // }
-
     @Put('users/:userId/role')
     updateRole(@Param('userId') userId: string, @Body() body: RoleDto) {
         return this.service.addRole(userId, body.role);
@@ -89,7 +87,8 @@ export class AdminController {
         return this.service.removeRole(userId, body.role);
     }
 
-    // MATCHES
+    // ─── MATCHES ─────────────────────────────────────────────────────────────
+
     @Get('matches')
     getMatches() {
         return this.matchService.findAll();
@@ -127,7 +126,8 @@ export class AdminController {
         return this.matchService.removeMaster(matchId, userId);
     }
 
-    // INVITES
+    // ─── INVITES ─────────────────────────────────────────────────────────────
+
     @Post('/matches/:matchId/invites')
     createInvite(@Body() dto: CreateInviteDto) {
         return this.inviteService.createInvite(dto);
@@ -158,7 +158,8 @@ export class AdminController {
         return this.inviteService.delete(id);
     }
 
-    // CARDS
+    // ─── CARDS ───────────────────────────────────────────────────────────────
+
     @Get('/users/:userId/card')
     getUserCard(@Param('userId') userId: string) {
         return this.service.findByUserAndCurrentMatch(userId);
@@ -169,14 +170,97 @@ export class AdminController {
         return this.cardService.regenerateCard(userId);
     }
 
-    // Ads
-    @Post()
+    // ─── ADS ─────────────────────────────────────────────────────────────────
+
+    @Post('ads')
     async createAd(@Body() dto: CreateAdDto) {
         return this.adService.create(dto);
     }
 
-    // Future: Direct upload endpoint
-    // @Post('upload')
-    // @UseInterceptors(FileInterceptor('file'))
-    // async uploadAdFile(@UploadedFile() file: Express.Multer.File) { ... }
+    // ─── NOTIFICATIONS ───────────────────────────────────────────────────────
+
+    /**
+     * POST /api/v1/admin/notifications/send
+     * Body: SendNotificationDto
+     * Returns: { sent: number }  — number of FCM tokens the message was sent to
+     */
+    @Post('notifications/send')
+    async sendNotification(@Body() dto: SendNotificationDto) {
+        const {target, title, body, matchId, userId} = dto;
+
+        let tokens: string[] = [];
+
+        if (target === NotificationTarget.ALL) {
+            const users = await this.userService.getUsers();
+            tokens = users.flatMap((u: any) => u.fcmTokens ?? []);
+
+        } else if (target === NotificationTarget.MATCH) {
+            if (!matchId) {
+                throw new BadRequestException('matchId is required when target is "match"');
+            }
+            const match = await this.matchService.findById(matchId);
+            if (!match) throw new NotFoundException(`Match ${matchId} not found`);
+
+            const userIds: string[] = [
+                ...(match.masters ?? []),
+                ...(match.players ?? []),
+            ].map((id: any) => String(id));
+
+            const userResults = await Promise.all(
+                userIds.map((id) => this.userService.getUser(id).catch(() => null)),
+            );
+            tokens = userResults
+                .filter(Boolean)
+                .flatMap((u: any) => u.fcmTokens ?? []);
+
+        } else if (target === NotificationTarget.USER) {
+            if (!userId) {
+                throw new BadRequestException('userId is required when target is "user"');
+            }
+            const user = await this.userService.getUser(userId);
+            if (!user) throw new NotFoundException(`User ${userId} not found`);
+            tokens = user.fcmTokens ?? [];
+        }
+
+        // Deduplicate tokens before sending
+        tokens = [...new Set(tokens)];
+
+        await this.notificationService.sendToUsers(tokens, title, body, {});
+
+        return {sent: tokens.length};
+    }
+
+    /**
+     * GET /api/v1/admin/notifications/preview
+     * Query params: target, matchId?, userId?
+     * Returns a recipient count so the UI can show a confirmation before sending.
+     */
+    @Get('notifications/preview')
+    async previewRecipients(
+        @Query('target') target: string,
+        @Query('matchId') matchId?: string,
+        @Query('userId') userId?: string,
+    ) {
+        if (target === NotificationTarget.ALL) {
+            const users = await this.userService.getUsers();
+            return {count: users.length};
+        }
+
+        if (target === NotificationTarget.MATCH) {
+            if (!matchId) throw new BadRequestException('matchId required');
+            const match = await this.matchService.findById(matchId);
+            if (!match) throw new NotFoundException(`Match ${matchId} not found`);
+            const count = (match.masters?.length ?? 0) + (match.players?.length ?? 0);
+            return {count, matchName: match.name};
+        }
+
+        if (target === NotificationTarget.USER) {
+            if (!userId) throw new BadRequestException('userId required');
+            const user = await this.userService.getUser(userId);
+            if (!user) throw new NotFoundException(`User ${userId} not found`);
+            return {count: 1, email: user.email};
+        }
+
+        return {count: 0};
+    }
 }

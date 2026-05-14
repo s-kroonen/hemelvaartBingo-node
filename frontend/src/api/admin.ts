@@ -167,3 +167,27 @@ export const deleteAd = async (id: string) => {
     const res = await api.delete(`/admin/ads/${id}`);
     return res.data;
 };
+
+export type NotificationTarget = "all" | "match" | "user";
+
+export interface SendNotificationPayload {
+    target: NotificationTarget;
+    title: string;
+    body: string;
+    matchId?: string;
+    userId?: string;
+}
+
+export async function sendNotification(payload: SendNotificationPayload): Promise<{ sent: number }> {
+    const { target, title, body, matchId, userId } = payload;
+    console.log(matchId);
+    console.log(userId);
+    const res = await api.post("/admin/notifications/send", {
+        target,
+        title,
+        body,
+        ...(matchId && matchId.length > 0 ? { matchId } : {}),
+        ...(userId && userId.length > 0 ? { userId } : {}),
+    });
+    return res.data;
+}

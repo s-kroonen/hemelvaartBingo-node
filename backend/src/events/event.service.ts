@@ -63,6 +63,7 @@ export class EventService {
     }
 
     async deleteForMatch(matchId: Types.ObjectId, eventId: Types.ObjectId) {
+        await this.recallEvent(matchId,eventId);
         return this.eventRepo.deleteForMatch(eventId, matchId);
     }
 
