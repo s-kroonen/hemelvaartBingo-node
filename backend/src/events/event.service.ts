@@ -56,16 +56,17 @@ export class EventService {
 
         // null means explicitly clear — use $unset otherwise spread won't clear it
         if (dto.manualNumbers === null) {
-            data.$unset = { manualNumbers: 1 };
+            data.$unset = {manualNumbers: 1};
             delete data.manualNumbers;
         }
         return this.eventRepo.update(eventId, data);
     }
 
     async deleteForMatch(matchId: Types.ObjectId, eventId: Types.ObjectId) {
-        await this.recallEvent(matchId,eventId);
+        await this.recallEvent(matchId, eventId);
         return this.eventRepo.deleteForMatch(eventId, matchId);
     }
+
 
     async callEvent(matchId: Types.ObjectId, eventId: string | Types.ObjectId) {
         const match = await this.matchService.findById(matchId);
@@ -77,44 +78,31 @@ export class EventService {
         const newNumbers: number[] = [];
 
         if (event.manualNumbers && event.manualNumbers.length > 0) {
-            // Use the manually set numbers — filter out any already called
             const valid = event.manualNumbers.filter(n => !alreadyCalled.includes(n));
             newNumbers.push(...valid);
         } else {
-            // Original random logic
             const availableNumbers = this.getAvailableNumbers(alreadyCalled);
             const numbersPerEvent = match.numbersPerEvent;
-
             for (let i = 0; i < numbersPerEvent; i++) {
                 if (availableNumbers.length === 0) break;
                 const index = Math.floor(Math.random() * availableNumbers.length);
-                const num = availableNumbers.splice(index, 1)[0];
-                newNumbers.push(num);
+                newNumbers.push(availableNumbers.splice(index, 1)[0]);
             }
         }
 
         event.called = true;
-        match.calledNumbers.push(...newNumbers);
+        event.calledAt = new Date();
         event.numbers.push(...newNumbers);
-        event.calledAt = new Date(Date.now());
+        match.calledNumbers.push(...newNumbers);
 
         await match.save();
         await event.save();
 
+        // WebSocket update (live UI)
         this.matchGateway.emitEventUpdate(match.id, event.id, 'CALL');
 
-        const allPlayerTokens = match.players
-            .map((player: any) => player.fcmTokens)
-            .flat()
-            .filter(token => !!token);
-        if (allPlayerTokens.length > 0) {
-            await this.notificationService.sendToUsers(
-                allPlayerTokens,
-                'New Number Called!',
-                'Check your bingo card for the latest update!',
-                {matchId: matchId.toString(), type: 'NEW_NUMBER'}
-            );
-        }
+        // Push notification (only on call, not recall)
+        await this.notificationService.notifyNewNumber(match.id.toString());
 
         return {newNumbers};
     }
@@ -122,18 +110,12 @@ export class EventService {
     async recallEvent(matchId: Types.ObjectId, eventId: Types.ObjectId) {
         const match = await this.matchService.findById(matchId);
         const event = await this.eventRepo.findById(eventId);
-        if (!event)
-            throw new NotFoundException(`Event with id ${eventId} not found`);
-        if (!match)
-            throw new NotFoundException(`Match with id ${matchId} not found`);
+        if (!event) throw new NotFoundException(`Event with id ${eventId} not found`);
+        if (!match) throw new NotFoundException(`Match with id ${matchId} not found`);
 
         const eventNumbers = event.numbers || [];
 
-        // remove event numbers from match.calledNumbers
-        match.calledNumbers = (match.calledNumbers || [])
-            .filter(n => !eventNumbers.includes(n));
-
-        // clear event numbers
+        match.calledNumbers = (match.calledNumbers || []).filter(n => !eventNumbers.includes(n));
         event.numbers = [];
         event.called = false;
         event.calledAt = undefined;
@@ -141,7 +123,9 @@ export class EventService {
         await match.save();
         await event.save();
 
+        // WebSocket update only — no push notification on recall
         this.matchGateway.emitEventUpdate(match.id, event.id, 'RECALL');
+
         return {removedNumbers: eventNumbers};
     }
 

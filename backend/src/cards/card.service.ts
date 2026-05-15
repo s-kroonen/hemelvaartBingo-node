@@ -2,12 +2,13 @@ import {Injectable, NotFoundException} from '@nestjs/common';
 import {CardRepository} from './card.repository';
 import {generateBingoCells} from '../shared/bingo.util';
 import {Types} from 'mongoose';
-import {Card} from './card.schema';
+import {BingoCell, Card} from './card.schema';
 import {UserService} from '../users/user.service';
 import {MatchService} from '../matches/match.service';
 import {BingoResultDto} from '../matches/match.schema';
 import {BingoMode} from '../shared/BingoConfig';
 import {MatchGateway} from "../matches/match.gateway";
+import {NotificationService} from "../notifications/notification.service";
 
 @Injectable()
 export class CardService {
@@ -16,6 +17,7 @@ export class CardService {
         private userService: UserService,
         private matchService: MatchService,
         private matchGateway: MatchGateway,
+        private notificationService: NotificationService,
     ) {
     }
 
@@ -73,6 +75,8 @@ export class CardService {
         }
     }
 
+
+
     // async findByUserAndCurrentMatch(userId: string) {
     //   const user = await this.userService.findById(userId);
     //   if (!user) throw new NotFoundException('User does not exist');
@@ -80,6 +84,9 @@ export class CardService {
     //   if (!match) return null;
     //   return this.cardRepo.findByUserAndMatch(user._id, match._id);
     // }
+
+    // Only verifyBingo changes — getCompletedLines stays exactly the same.
+
     async verifyBingo(
         matchId: string,
         cardId: string,
@@ -87,53 +94,128 @@ export class CardService {
     ): Promise<BingoResultDto> {
         const match = await this.matchService.findById(matchId);
         if (!match) throw new NotFoundException('Match not found');
+
         const card = await this.findById(cardId);
         if (!card) throw new NotFoundException('Card not found');
 
-        // 1. Basic Security Check
+        // 1. Ownership check
         if (card.userId.toString() !== userId.toString()) {
             return {isValid: false, message: "This isn't your card!"};
         }
 
-        // 2. Cross-reference: Are the "checked" cells actually called by the master?
-        const checkedNumbers = card.cells
-            .filter((cell) => cell.isChecked)
-            .map((cell) => parseInt(cell.value));
-
-        const invalidNumbers = checkedNumbers.filter(
-            (num) => !match.calledNumbers.includes(num),
-        );
-
-        if (invalidNumbers.length > 0) {
-            return {
-                isValid: false,
-                message: "You checked numbers that haven't been called yet!",
-            };
+        // 2. Build normalised grid
+        const size = Math.round(Math.sqrt(card.cells.length));
+        const grid: BingoCell[][] = [];
+        for (let r = 0; r < size; r++) {
+            grid.push(card.cells.slice(r * size, r * size + size));
         }
 
-        // 3. Pattern Recognition (Rows, Columns, Diagonals)
-        const isWinner = this.checkPatterns(card.cells, match.mode);
+        // 3. Cross-reference: checked non-FREE cells must be in calledNumbers
+        const calledSet = new Set(match.calledNumbers.map(String));
+        const invalidCells = grid.flat().filter((cell) => {
+            if (!cell.isChecked) return false;
+            if (cell.value.toUpperCase() === 'FREE') return false;
+            return !calledSet.has(String(cell.value));
+        });
 
-        if (isWinner) {
-            this.matchGateway.emitBingoAlert(matchId, {
+
+        if (invalidCells.length > 0) {
+            return {isValid: false, message: "You checked numbers that haven't been called yet!"};
+        }
+
+        // 4. Line detection
+        const alreadyClaimed = new Set<string>(card.claimedLines ?? []);
+        const allCompletedLines = this.getCompletedLines(grid, size);
+        const newLines = allCompletedLines.filter((key) => !alreadyClaimed.has(key));
+
+        if (newLines.length === 0) {
+            // WebSocket: tell the room it was a false bingo
+            this.matchGateway.emitFalseBingoAlert(matchId, {
                 userId,
                 cardId,
-                message: 'Someone claimed BINGO!',
+                message: 'Someone claimed BINGO, but it was invalid!',
             });
-            return {
-                isValid: true,
-                message: 'BINGO! You won!',
-                prize: 'Standard Prize', // This could be pulled from the Match schema later
-            };
+
+            // Push notification: tell all players who called the false bingo
+            await this.notificationService.notifyBingo(matchId, userId, false, false);
+
+            return {isValid: false, message: 'Not a bingo yet. Keep playing!'};
         }
 
-        return {isValid: false, message: 'Not a bingo yet. Keep playing!'};
+        // 5. Persist newly claimed lines
+        await this.cardRepo.updateCardClaimedLines(cardId, [...alreadyClaimed, ...newLines]);
+
+        // 6. Full-card check
+        const isFullCard = grid.flat().every(
+            (cell) => cell.isChecked || cell.value.toUpperCase() === 'FREE',
+        );
+
+        // 7. WebSocket: live UI update for the whole room
+        this.matchGateway.emitBingoAlert(matchId, {
+            userId,
+            cardId,
+            newLines,
+            isFullCard,
+            message: isFullCard
+                ? 'Someone got a FULL CARD!'
+                : `Someone got BINGO! (${newLines.length} line${newLines.length > 1 ? 's' : ''})`,
+        });
+
+        // 8. Push notification: tell all players who got the bingo
+        await this.notificationService.notifyBingo(matchId, userId, true, isFullCard);
+
+        return {
+            isValid: true,
+            message: isFullCard
+                ? 'Full card! Amazing!'
+                : `BINGO! You completed ${newLines.length} line${newLines.length > 1 ? 's' : ''}!`,
+            prize: isFullCard ? 'Grand Prize' : 'Standard Prize',
+            newLines: newLines.length,
+            isFullCard,
+        };
     }
 
-    private checkPatterns(cells: any[], mode: BingoMode): boolean {
-        // Logic to check 5x5 (or 'size' x 'size') grid for a full line
-        // Implementation depends on how your 'cells' are stored (index-based)
-        return true; // Simplified for now
+    /**
+     * Returns the key of every completed line in the grid.
+     * A line is complete when every cell is either checked or FREE.
+     *
+     * Key format:
+     *   "row-{r}"          horizontal line for row r
+     *   "col-{c}"          vertical line for column c
+     *   "diag-main"        top-left → bottom-right diagonal
+     *   "diag-anti"        top-right → bottom-left diagonal
+     */
+    private getCompletedLines(grid: BingoCell[][], size: number): string[] {
+        const completed: string[] = [];
+
+        const isActive = (cell: BingoCell) =>
+            cell.isChecked || cell.value.toUpperCase() === 'FREE';
+
+        // Rows
+        for (let r = 0; r < size; r++) {
+            if (grid[r].every(isActive)) {
+                completed.push(`row-${r}`);
+            }
+        }
+
+        // Columns
+        for (let c = 0; c < size; c++) {
+            if (grid.every((row) => isActive(row[c]))) {
+                completed.push(`col-${c}`);
+            }
+        }
+
+        // Main diagonal (top-left → bottom-right)
+        if (grid.every((row, i) => isActive(row[i]))) {
+            completed.push('diag-main');
+        }
+
+        // Anti-diagonal (top-right → bottom-left)
+        if (grid.every((row, i) => isActive(row[size - 1 - i]))) {
+            completed.push('diag-anti');
+        }
+
+        return completed;
     }
 
     private async findById(cardId: string) {

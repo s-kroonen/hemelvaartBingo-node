@@ -75,6 +75,10 @@ export class CardRepository {
     return this.model.findByIdAndDelete(cardId);
   }
 
+  async updateCardClaimedLines(cardId: string, lines: string[]) {
+    return this.model.findByIdAndUpdate(cardId, {claimedLines: lines});
+  }
+
   // private toObjectId(id: string | Types.ObjectId) {
   //   return typeof id === 'string' ? new Types.ObjectId(id) : id;
   // }

@@ -18,6 +18,8 @@ export class BingoResultDto {
   isValid: boolean;
   message: string;
   prize?: string;
+  newLines?: number;
+  isFullCard?: boolean;
 }
 
 export enum MatchStatus {

@@ -28,7 +28,7 @@ import {MatchService} from '../matches/match.service';
 import {UserService} from '../users/user.service';
 import {CardService} from '../cards/card.service';
 import {CreateAdDto} from '../ads/ad.shema';
-import {NotificationService} from '../notifications/notification.service';
+import {NotificationPayload, NotificationService} from '../notifications/notification.service';
 import {NotificationTarget, SendNotificationDto} from "../notifications/notification.schema";
 
 @Controller({path: 'admin', version: '1'})
@@ -43,7 +43,8 @@ export class AdminController {
         private userService: UserService,
         private cardService: CardService,
         private notificationService: NotificationService,
-    ) {}
+    ) {
+    }
 
     // ─── USERS ───────────────────────────────────────────────────────────────
 
@@ -188,46 +189,23 @@ export class AdminController {
     async sendNotification(@Body() dto: SendNotificationDto) {
         const {target, title, body, matchId, userId} = dto;
 
-        let tokens: string[] = [];
+        const payload: NotificationPayload = {title, body, type: 'ADMIN_MESSAGE', matchId, userId};
 
         if (target === NotificationTarget.ALL) {
-            const users = await this.userService.getUsers();
-            tokens = users.flatMap((u: any) => u.fcmTokens ?? []);
-
-        } else if (target === NotificationTarget.MATCH) {
-            if (!matchId) {
-                throw new BadRequestException('matchId is required when target is "match"');
-            }
-            const match = await this.matchService.findById(matchId);
-            if (!match) throw new NotFoundException(`Match ${matchId} not found`);
-
-            const userIds: string[] = [
-                ...(match.masters ?? []),
-                ...(match.players ?? []),
-            ].map((id: any) => String(id));
-
-            const userResults = await Promise.all(
-                userIds.map((id) => this.userService.getUser(id).catch(() => null)),
-            );
-            tokens = userResults
-                .filter(Boolean)
-                .flatMap((u: any) => u.fcmTokens ?? []);
-
-        } else if (target === NotificationTarget.USER) {
-            if (!userId) {
-                throw new BadRequestException('userId is required when target is "user"');
-            }
-            const user = await this.userService.getUser(userId);
-            if (!user) throw new NotFoundException(`User ${userId} not found`);
-            tokens = user.fcmTokens ?? [];
+            return this.notificationService.sendToAll(payload);
         }
 
-        // Deduplicate tokens before sending
-        tokens = [...new Set(tokens)];
+        if (target === NotificationTarget.MATCH) {
+            if (!matchId) throw new BadRequestException('matchId is required when target is "match"');
+            await this.notificationService.sendToMatch(matchId, payload, {includeMasters: true});
+            return {sent: true};
+        }
 
-        await this.notificationService.sendToUsers(tokens, title, body, {});
-
-        return {sent: tokens.length};
+        if (target === NotificationTarget.USER) {
+            if (!userId) throw new BadRequestException('userId is required when target is "user"');
+            await this.notificationService.sendToUser(userId, payload);
+            return {sent: true};
+        }
     }
 
     /**

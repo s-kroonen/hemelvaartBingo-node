@@ -56,8 +56,18 @@ export class MatchGateway implements OnGatewayConnection {
         this.server.to(matchId).emit('eventUpdated', {matchId, eventId, type});
     }
 
-    emitBingoAlert(matchId: string, payload: any) {
-        // Notify everyone (or just the masters) in the room
-        this.server.to(matchId).emit('bingoCalled', payload);
+    emitFalseBingoAlert(matchId: string, payload: { userId: string; cardId: string; message: string }) {
+        this.server.to(matchId).emit('falseBingoCalled', payload);
+
+    }
+
+    emitBingoAlert(matchId: string, payload: {
+        userId: string;
+        cardId: string;
+        newLines: string[];
+        isFullCard: boolean;
+        message: string
+    }) {
+        this.server.to(matchId).emit('falseBingoCalled', payload);
     }
 }
