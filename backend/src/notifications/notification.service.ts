@@ -123,7 +123,6 @@ export class NotificationService {
             body,
             type: isValid ? (isFullCard ? 'FULL_CARD' : 'BINGO') : 'FALSE_BINGO',
             matchId,
-            userId: callerUserId,
         }, {includeMasters: true});
     }
 
