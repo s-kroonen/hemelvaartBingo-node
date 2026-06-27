@@ -77,9 +77,13 @@ jobs:
   # DEPLOY
   # ================================
   deploy-dev:
-    name: Deploy to Portainer
+    name: Deploy to Portainer Dev
     needs: [frontend, backend]
     runs-on: ubuntu-latest
+
+    if: startsWith(github.ref, 'refs/heads/dev') && github.event_name == 'push'
+    permissions:
+      contents: read
     environment:
       name: dev
     steps:
@@ -104,10 +108,11 @@ jobs:
           exit 1
 
   deploy-prod:
-    name: Deploy to Portainer
+    name: Deploy to Portainer Prod
     needs: [frontend, backend]
     runs-on: ubuntu-latest
 
+    if: github.event_name == 'workflow_dispatch'
     environment:
       name: production
     steps:
