@@ -1,7 +1,7 @@
 import {Injectable, Logger} from '@nestjs/common';
 import {InjectModel} from '@nestjs/mongoose';
 import {Model, Types} from 'mongoose';
-import {User} from './user.schema';
+import {Role, User} from './user.schema';
 
 @Injectable()
 export class UserRepository {
@@ -40,6 +40,6 @@ export class UserRepository {
     }
 
     async findByRole(role: string) {
-        return this.userModel.find({roles: role});
+        return this.userModel.find({roles: role as Role});
     }
 }
