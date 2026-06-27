@@ -76,11 +76,40 @@ jobs:
   # ================================
   # DEPLOY
   # ================================
-  deploy:
+  deploy-dev:
+    name: Deploy to Portainer
+    needs: [frontend, backend]
+    runs-on: ubuntu-latest
+    environment:
+      name: dev
+    steps:
+      - name: Trigger Portainer Webhook
+        run: |
+          curl -X POST "${{ secrets.PORTAINER_WEBHOOK_URL }}"
+
+      - name: Wait for deployment
+        run: sleep 30
+
+      - name: Verify service is running
+        run: |
+          for i in {1..5}; do
+            STATUS=$(curl -s -o /dev/null -w "%{http_code}" "${{ secrets.DEPLOY_HEALTHCHECK_URL }}")
+            if [ "$STATUS" = "200" ]; then
+              echo "Service is healthy"
+              exit 0
+            fi
+            sleep 10
+          done
+          echo "Service failed health check"
+          exit 1
+
+  deploy-prod:
     name: Deploy to Portainer
     needs: [frontend, backend]
     runs-on: ubuntu-latest
 
+    environment:
+      name: production
     steps:
       - name: Trigger Portainer Webhook
         run: |
