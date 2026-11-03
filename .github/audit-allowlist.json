@@ -1,0 +1,10 @@
+{
+  "advisories": [
+    {
+      "id": "GHSA-m9gg-hp2v-232j",
+      "package": "@grpc/grpc-js",
+      "reason": "Pulled in by the website's firebase -> @firebase/firestore, which pins grpc-js ~1.9 even in its latest release. The site never imports Firestore and grpc is not in the built bundle; the advisory affects grpc servers.",
+      "reviewBy": "2027-02-01"
+    }
+  ]
+}

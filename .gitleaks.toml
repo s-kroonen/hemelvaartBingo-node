@@ -1,0 +1,13 @@
+# Secret scanning config for CI (gitleaks). Extends the default rules.
+[extend]
+useDefault = true
+
+# The Firebase web config (apiKey etc.) is public client configuration, not a secret:
+# it ships in every browser bundle. Access is controlled by Firebase rules, not the key.
+# Only a Firebase-format key in this one file is allowed; anything else there is still flagged.
+[[allowlists]]
+description = "Firebase web client API key"
+targetRules = ["gcp-api-key", "generic-api-key"]
+condition = "AND"
+paths = ['''^frontend/src/firebase/config\.ts$''']
+regexes = ['''AIza[0-9A-Za-z_\-]{35}''']

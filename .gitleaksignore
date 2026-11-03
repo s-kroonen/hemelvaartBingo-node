@@ -1,0 +1,4 @@
+# Fake placeholder token in the CircleCI badge URL of the stock NestJS README (initial commit).
+91b3e70be593720ec3a9adc9e682f42e257b5701:backend/README.md:generic-api-key:5
+# The first version of this file quoted that same placeholder in its comment (HEM-53 commit).
+b8509bb77158da59ea59e0cac486fbe0d4cfe9f9:.gitleaksignore:generic-api-key:1
