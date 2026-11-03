@@ -52,9 +52,10 @@ export class MatchService {
   }
 
   async createMatchForUser(userId: Types.ObjectId, data: CreateMatchDto) {
-
     if (!Object.values(BingoMode).includes(data.mode)) {
-      throw new BadRequestException(`The bingo mode ${data.mode} is not supported yet.`);
+      throw new BadRequestException(
+        `The bingo mode ${data.mode} is not supported yet.`,
+      );
     }
     const newMatch = await this.repo.create(data);
     return this.repo.addMaster(newMatch._id, userId);
@@ -62,7 +63,8 @@ export class MatchService {
 
   async findById(id: string | Types.ObjectId) {
     const match = await this.repo.findById(id);
-    if (!match) throw new NotFoundException(`Match with id ${id} not found`);
+    if (!match)
+      throw new NotFoundException(`Match with id ${String(id)} not found`);
     return match;
   }
 

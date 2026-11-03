@@ -76,7 +76,7 @@ export class CardRepository {
   }
 
   async updateCardClaimedLines(cardId: string, lines: string[]) {
-    return this.model.findByIdAndUpdate(cardId, {claimedLines: lines});
+    return this.model.findByIdAndUpdate(cardId, { claimedLines: lines });
   }
 
   // private toObjectId(id: string | Types.ObjectId) {

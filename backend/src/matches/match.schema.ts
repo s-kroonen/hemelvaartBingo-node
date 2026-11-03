@@ -1,17 +1,13 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Types } from 'mongoose';
 import {
-  IsArray,
   IsBoolean,
-  IsDateString,
   IsEnum,
-  IsMongoId,
   IsNumber,
   IsOptional,
   IsPositive,
   IsString,
 } from 'class-validator';
-import { UserSchema } from '../users/user.schema';
 import { BingoMode } from '../shared/BingoConfig';
 
 export class BingoResultDto {
@@ -42,7 +38,7 @@ export class Match {
   @Prop({
     type: String,
     enum: BingoMode,
-    default: BingoMode.BINGO_75
+    default: BingoMode.BINGO_75,
   })
   mode: BingoMode;
 

@@ -1,4 +1,4 @@
-import { Injectable, Logger, NotFoundException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { UserRepository } from './user.repository';
 import { Types } from 'mongoose';
 import {
@@ -7,9 +7,6 @@ import {
   UpdateUserAdminDto,
   UpdateUserDto,
 } from './user.schema';
-import { MatchService } from '../matches/match.service';
-import { CardService } from '../cards/card.service';
-import { generateBingoCells } from '../shared/bingo.util';
 
 @Injectable()
 export class UserService {

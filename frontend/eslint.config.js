@@ -14,7 +14,7 @@ export default defineConfig([
     extends: [
       js.configs.recommended,
       tseslint.configs.recommended,
-      reactHooks.configs['recommended-latest'],
+      reactHooks.configs.flat['recommended-latest'],
       reactRefresh.configs.vite,
     ],
     languageOptions: {
@@ -22,6 +22,12 @@ export default defineConfig([
       globals: globals.browser,
     },
     rules: {
+      // Existing code uses `any` widely (cleanup in HEM-51); warn so new code is flagged
+      // without blocking every PR on old files. Same policy as the backend.
+      '@typescript-eslint/no-explicit-any': 'warn',
+      // Several pages copy fetched data into form state inside an effect. Fixing that means
+      // restructuring those components, which needs tests first; warn until then.
+      'react-hooks/set-state-in-effect': 'warn',
       'no-console': ['error', { allow: ['warn', 'error'] }],
     },
   },

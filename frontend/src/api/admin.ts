@@ -180,8 +180,6 @@ export interface SendNotificationPayload {
 
 export async function sendNotification(payload: SendNotificationPayload): Promise<{ sent: number }> {
     const { target, title, body, matchId, userId } = payload;
-    console.log(matchId);
-    console.log(userId);
     const res = await api.post("/admin/notifications/send", {
         target,
         title,

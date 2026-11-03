@@ -1,9 +1,9 @@
-import {createBrowserRouter, Navigate} from "react-router";
+import {createBrowserRouter} from "react-router";
 import Root from "./components/Root";
 import LeaderboardPage from "./pages/LeaderboardPage";
 import AdminDashboard from "./pages/AdminDashboard";
 import BingoMasterPage from "./pages/BingoMasterPage";
-import {useAuthStore} from "./store/authStore";
+import ProtectedRoute from "./components/ProtectedRoute";
 import LoginPage from "@/pages/LoginPage.tsx";
 import AdminUserEdit from "@/pages/AdminUserEdit.tsx";
 import AdminMatchEdit from "@/pages/AdminMatchEdit.tsx";
@@ -12,29 +12,6 @@ import InviteJoin from "@/pages/InviteJoin.tsx";
 import ProfilePage from "@/pages/ProfilePage.tsx";
 import PrivacyPolicy from "@/pages/PrivacyPolicy.tsx";
 import AdminAdEdit from "@/pages/AdminAdEdit.tsx";
-
-// Protected Route Component
-function ProtectedRoute({
-                            children,
-                            requiredRole
-                        }: {
-    children: React.ReactNode;
-    requiredRole?: string;
-}) {
-    const {isAuthenticated, hasRole} = useAuthStore();
-
-    // Redirect to login if not authenticated
-    if (!isAuthenticated) {
-        return <Navigate to="/login" replace/>;
-    }
-
-    // Check role if required
-    if (requiredRole && !hasRole(requiredRole)) {
-        return <Navigate to="/" replace/>;
-    }
-
-    return <>{children}</>;
-}
 
 export const router = createBrowserRouter([
     {

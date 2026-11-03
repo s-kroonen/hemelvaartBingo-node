@@ -15,16 +15,13 @@ export class AllExceptionsFilter implements ExceptionFilter {
     const req = ctx.getRequest();
 
     const status =
-      exception instanceof HttpException
-        ? exception.getStatus()
-        : 500;
+      exception instanceof HttpException ? exception.getStatus() : 500;
 
     let errorResponse = '';
 
     if (exception instanceof HttpException) {
       const res = exception.getResponse();
-      errorResponse =
-        typeof res === 'string' ? res : JSON.stringify(res);
+      errorResponse = typeof res === 'string' ? res : JSON.stringify(res);
     }
 
     this.logger.error(

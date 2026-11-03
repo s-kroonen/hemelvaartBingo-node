@@ -2,22 +2,18 @@ import {
   Body,
   Controller,
   Get,
-  NotFoundException, Param,
-  Patch,
+  NotFoundException,
+  Param,
   Post,
   Put,
   Req,
   UseGuards,
 } from '@nestjs/common';
 import { FirebaseAuthGuard } from '../auth/firebase-auth.guard';
-import { Query } from 'mongoose';
 import { CardService } from './card.service';
 import { UserService } from '../users/user.service';
 import { MatchService } from '../matches/match.service';
-import {RolesGuard} from "../auth/roles.guard";
-import {Roles} from "../auth/roles.decorator";
-import {Role} from "../users/user.schema";
-import {BingoResultDto} from "../matches/match.schema";
+import { BingoResultDto } from '../matches/match.schema';
 
 @Controller({ path: 'cards', version: '1' })
 @UseGuards(FirebaseAuthGuard)
@@ -68,9 +64,9 @@ export class CardController {
   @Post(':cardId/bingo')
   @UseGuards(FirebaseAuthGuard)
   async checkBingo(
-      @Param('cardId') cardId: string,
-      @Body('matchId') matchId: string,
-      @Req() req
+    @Param('cardId') cardId: string,
+    @Body('matchId') matchId: string,
+    @Req() req,
   ): Promise<BingoResultDto> {
     return this.cardService.verifyBingo(matchId, cardId, req.user.dbUser._id);
   }

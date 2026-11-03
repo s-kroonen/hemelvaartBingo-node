@@ -2,22 +2,22 @@ import {
   CanActivate,
   ExecutionContext,
   ForbiddenException,
-  Injectable, Logger,
+  Injectable,
+  Logger,
 } from '@nestjs/common';
 
 import { Reflector } from '@nestjs/core';
 
 @Injectable()
 export class RolesGuard implements CanActivate {
-
   private readonly logger = new Logger(RolesGuard.name);
   constructor(private reflector: Reflector) {}
 
   canActivate(context: ExecutionContext): boolean {
-    const requiredRoles = this.reflector.getAllAndOverride<string[]>(
-        'roles',
-        [context.getHandler(), context.getClass()],
-    );
+    const requiredRoles = this.reflector.getAllAndOverride<string[]>('roles', [
+      context.getHandler(),
+      context.getClass(),
+    ]);
 
     if (!requiredRoles) return true;
 
@@ -27,9 +27,7 @@ export class RolesGuard implements CanActivate {
       throw new ForbiddenException('No roles found on user');
     }
 
-    const hasRole = requiredRoles.some((role) =>
-        user.roles.includes(role),
-    );
+    const hasRole = requiredRoles.some((role) => user.roles.includes(role));
 
     if (!hasRole) {
       throw new ForbiddenException('Insufficient permissions');

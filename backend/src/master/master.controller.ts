@@ -1,24 +1,11 @@
-import {
-  Body,
-  Controller,
-  Delete,
-  Get,
-  NotFoundException,
-  Param,
-  Post,
-  Put,
-  Req,
-  UseGuards,
-} from '@nestjs/common';
+import { Body, Controller, UseGuards } from '@nestjs/common';
 import { FirebaseAuthGuard } from '../auth/firebase-auth.guard';
 import { RolesGuard } from '../auth/roles.guard';
 import { Roles } from '../auth/roles.decorator';
 import { CardService } from '../cards/card.service';
 import { MatchService } from '../matches/match.service';
 import { Role } from '../users/user.schema';
-import { UpdateMatchDto } from '../matches/match.schema';
 import { EventService } from '../events/event.service';
-import { CreateEventDto, UpdateEventDto } from '../events/event.schema';
 import { UserService } from '../users/user.service';
 import { InviteService } from '../invites/invite.service';
 

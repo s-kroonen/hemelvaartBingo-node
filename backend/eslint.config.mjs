@@ -36,6 +36,9 @@ export default tseslint.config(
       '@typescript-eslint/no-unsafe-call': 'warn',
       '@typescript-eslint/no-unsafe-member-access': 'warn',
       '@typescript-eslint/no-unsafe-return': 'warn',
+      // A leading underscore marks a parameter that must stay for the method signature
+      // (interface, stub or framework hook) but isn't used yet.
+      '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
       'no-console': 'error',
       'prettier/prettier': ['error', { endOfLine: 'auto' }],
     },

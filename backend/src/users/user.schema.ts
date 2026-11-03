@@ -7,7 +7,6 @@ import {
   IsOptional,
   IsString,
 } from 'class-validator';
-import { InviteMetadata } from '../invites/invite.schema';
 
 export enum Role {
   USER = 'user',
@@ -53,7 +52,7 @@ export class User {
     playerSeen: boolean;
     masterSeen: boolean;
   };
-  
+
   @Prop({ type: [String], default: [] })
   fcmTokens: string[];
 }

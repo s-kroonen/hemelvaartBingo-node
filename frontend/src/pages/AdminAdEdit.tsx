@@ -92,7 +92,9 @@ export default function AdminAdEdit() {
                 onChange={(e) => {
                     try {
                         setForm({ ...form, metadata: JSON.parse(e.target.value) });
-                    } catch {}
+                    } catch {
+                        // Ignore invalid JSON while the user is still typing.
+                    }
                 }}
             />
 

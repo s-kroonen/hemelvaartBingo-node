@@ -8,7 +8,6 @@ import {
   IsOptional,
   IsString,
 } from 'class-validator';
-import { MatchSchema } from '../matches/match.schema';
 
 @Schema({ timestamps: true })
 export class BingoEvent {
@@ -67,7 +66,6 @@ export class CreateEventDto {
   @IsOptional()
   @IsNumber({}, { each: true })
   manualNumbers: number[];
-
 }
 export class UpdateEventDto {
   @IsOptional()

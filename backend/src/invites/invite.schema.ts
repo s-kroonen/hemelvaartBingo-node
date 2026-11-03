@@ -2,9 +2,7 @@ import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Types } from 'mongoose';
 import {
   IsBoolean,
-  IsDate,
   IsDateString,
-  IsEmail,
   IsMongoId,
   IsOptional,
   IsString,

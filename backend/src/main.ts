@@ -34,8 +34,12 @@ async function bootstrap() {
   app.enableCors({
     origin: (origin, callback) => {
       // Allow local development (any port) and your production domain
-      const isLocal = !origin || origin.startsWith('http://localhost') || origin.startsWith('http://127.0.0.1');
-      const isProd = origin === config.frontendUrl || origin === config.webappUrl;
+      const isLocal =
+        !origin ||
+        origin.startsWith('http://localhost') ||
+        origin.startsWith('http://127.0.0.1');
+      const isProd =
+        origin === config.frontendUrl || origin === config.webappUrl;
 
       if (isLocal || isProd) {
         callback(null, true);
@@ -46,7 +50,7 @@ async function bootstrap() {
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
     credentials: true,
   });
-  await app.listen(process.env.PORT ?? 3000,'0.0.0.0');
+  await app.listen(process.env.PORT ?? 3000, '0.0.0.0');
 }
 
-bootstrap();
+void bootstrap();

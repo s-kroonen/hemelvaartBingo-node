@@ -9,8 +9,8 @@ export const FirebaseProvider: Provider = {
     }
 
     const decoded = Buffer.from(
-        process.env.FIREBASE_SERVICE_ACCOUNT_B64!,
-        'base64',
+      process.env.FIREBASE_SERVICE_ACCOUNT_B64!,
+      'base64',
     ).toString('utf8');
 
     const serviceAccount = JSON.parse(decoded);

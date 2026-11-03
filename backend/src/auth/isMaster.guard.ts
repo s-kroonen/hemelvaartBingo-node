@@ -22,7 +22,8 @@ export class IsMasterGuard implements CanActivate {
     if (!match) throw new NotFoundException('Match not found');
 
     const isMaster = match.masters.some((id) => id.equals(userId));
-    if (!isMaster) throw new ForbiddenException('You are not a master of this match');
+    if (!isMaster)
+      throw new ForbiddenException('You are not a master of this match');
 
     // Optimization: Attach match to request so controller can use it
     request.match = match;

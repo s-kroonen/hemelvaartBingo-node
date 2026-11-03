@@ -18,7 +18,7 @@ export default function AuthProvider({ children }: any) {
             return;
         }
 
-        let timeout = setTimeout(() => {
+        const timeout = setTimeout(() => {
             console.warn("Auth timeout → continuing without Firebase");
             setLoading(false);
         }, 3000); // fallback
