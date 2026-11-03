@@ -10,6 +10,7 @@ import {InviteModule} from './invites/invite.module';
 import {EventModule} from './events/event.module';
 import {AdModule} from "./ads/ad.module";
 import {MediaProxyModule} from "./media-proxy/media-proxy.module";
+import { HealthModule } from './health/health.module';
 
 @Module({
     imports: [
@@ -22,7 +23,8 @@ import {MediaProxyModule} from "./media-proxy/media-proxy.module";
         MasterModule,
         EventModule,
         AdModule,
-        MediaProxyModule
+        MediaProxyModule,
+        HealthModule,
     ],
 })
 export class AppModule {
