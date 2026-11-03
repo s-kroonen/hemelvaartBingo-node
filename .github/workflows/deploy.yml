@@ -1,10 +1,8 @@
-name: CI → Security → Deploy
+name: Deploy
 
 on:
   push:
     branches: [master, dev]
-  pull_request:
-    types: [opened, synchronize, reopened]
   workflow_dispatch:
     inputs:
       version:
@@ -17,84 +15,25 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  NODE_VERSION: ${{ secrets.NODE_VERSION }}
   REGISTRY: ghcr.io
 
 jobs:
-  sonarqube:
-    name: SonarQube
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
-        with:
-          fetch-depth: 0  # Shallow clones should be disabled for a better relevancy of analysis
-      - name: SonarQube Scan
-        uses: SonarSource/sonarqube-scan-action@7006c4492b2e0ee0f816d36501671557c97f5995 # v8.1.0
-        env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-
-  # ================================
-  # FRONTEND
-  # ================================
-  frontend:
-    name: Frontend – Build, Tests & Security
-    runs-on: ubuntu-latest
-
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: actions/setup-node@v4
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-
-      - name: Install dependencies
-        run: npm ci -w frontend
-
-      - name: Build
-        run: npm run build -w frontend
-        env:
-          VITE_API_URL: ${{ secrets.VITE_API_URL }}
-
-#      - name: Test
-#        run: npm test -w frontend -- --ci
-
-      - name: NPM audit
-        working-directory: frontend
-        run: npm audit --audit-level=high
-
-  # ================================
-  # BACKEND
-  # ================================
-  backend:
-    name: Backend – Build, Tests & Security
-    runs-on: ubuntu-latest
-
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: actions/setup-node@v4
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-
-      - name: Install dependencies
-        run: npm ci -w backend
-
-      - name: Build
-        run: npm run build -w backend
-
-#      - name: Test
-#        run: npm test -w backend -- --ci
-
-      - name: NPM audit
-        working-directory: backend
-        run: npm audit --audit-level=high
+  # Every deploy runs the full CI first; images and deploys only start when it passes.
+  ci:
+    name: CI
+    uses: ./.github/workflows/ci.yml
+    secrets: inherit
+    permissions:
+      contents: read
+      security-events: write
+      actions: read
 
   # ================================
   # DOCKER
   # ================================
   docker-frontend:
     name: Docker – Frontend
-    needs: [frontend]
+    needs: [ci]
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -122,7 +61,7 @@ jobs:
 
   docker-backend:
     name: Docker – Backend
-    needs: [backend]
+    needs: [ci]
     runs-on: ubuntu-latest
     permissions:
       contents: read

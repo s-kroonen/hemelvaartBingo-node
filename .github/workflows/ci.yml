@@ -1,0 +1,240 @@
+name: CI
+
+# Checks every change before it can reach dev or the release branch.
+# Stages: security -> quality (lint, typecheck, test, build) -> image build -> one result job.
+# Deploy workflows call this with `workflow_call`, so nothing deploys without passing it.
+on:
+  pull_request:
+    branches: [dev, master, main]
+  workflow_call:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.event.pull_request.number || github.ref }}-${{ github.event_name }}
+  cancel-in-progress: true
+
+env:
+  # Matches the node:20-alpine Dockerfiles; bump together with HEM-58.
+  NODE_VERSION: '20'
+
+jobs:
+  # ── Stage 1: security ──────────────────────────────────────────────
+  secrets-scan:
+    name: Secret scan (gitleaks)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+      - name: Scan full git history
+        run: >
+          docker run --rm -v "$PWD:/repo:ro" -w /repo ghcr.io/gitleaks/gitleaks:v8.30.1
+          git . --config .gitleaks.toml --gitleaks-ignore-path .gitleaksignore
+          --redact --no-banner --exit-code 1
+
+  dependencies:
+    name: Dependency audit
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+      - name: Lockfile is in sync with package.json
+        run: npm ci --ignore-scripts --dry-run
+      - name: npm audit (high/critical, reviewed allowlist)
+        run: node .github/scripts/npm-audit-check.mjs
+      - name: Review dependency changes in this PR
+        if: github.event_name == 'pull_request'
+        uses: actions/dependency-review-action@a1d282b36b6f3519aa1f3fc636f609c47dddb294 # v5.0.0
+        with:
+          fail-on-severity: high
+          allow-ghsas: GHSA-m9gg-hp2v-232j
+
+  codeql:
+    name: CodeQL
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+      security-events: write
+      actions: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: github/codeql-action/init@1fc58d04a4d4374f921bdac573c3811c240f9c26 # v4.39.2
+        with:
+          languages: javascript-typescript
+          build-mode: none
+          queries: security-extended
+      - uses: github/codeql-action/analyze@1fc58d04a4d4374f921bdac573c3811c240f9c26 # v4.39.2
+
+  # ── Stage 2: quality ───────────────────────────────────────────────
+  lint:
+    name: Lint (${{ matrix.workspace }})
+    needs: [secrets-scan, dependencies]
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # max-warnings is a ratchet: lower it when warnings are fixed, never raise it.
+          - workspace: backend
+            command: npx eslint "{src,test}/**/*.ts" --max-warnings 182
+          - workspace: frontend
+            command: npx eslint . --max-warnings 30
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+      - run: npm ci
+      - name: ESLint (no autofix)
+        working-directory: ${{ matrix.workspace }}
+        run: ${{ matrix.command }}
+
+  typecheck:
+    name: Typecheck (${{ matrix.workspace }})
+    needs: [secrets-scan, dependencies]
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - workspace: backend
+            command: npx tsc --noEmit -p tsconfig.json
+          - workspace: frontend
+            command: npx tsc -b --noEmit
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+      - run: npm ci
+      - name: tsc
+        working-directory: ${{ matrix.workspace }}
+        run: ${{ matrix.command }}
+
+  test:
+    name: Unit tests (backend)
+    needs: [secrets-scan, dependencies]
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+      - run: npm ci
+      # --passWithNoTests until the test baseline lands (HEM-105). The e2e suite is not
+      # run here: it still is the Nest template and needs Mongo and Firebase.
+      - name: Jest
+        working-directory: backend
+        run: npx jest --ci --coverage --passWithNoTests
+      - name: Upload coverage
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: coverage-backend
+          path: backend/coverage
+          if-no-files-found: ignore
+          retention-days: 7
+
+  build:
+    name: Build (${{ matrix.workspace }})
+    needs: [secrets-scan, dependencies]
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        workspace: [backend, frontend]
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+      - run: npm ci
+      - run: npm run build -w ${{ matrix.workspace }}
+      - name: Upload build output
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: dist-${{ matrix.workspace }}
+          path: ${{ matrix.workspace }}/dist
+          if-no-files-found: error
+          retention-days: 7
+
+  # ── Stage 3: images and analysis ───────────────────────────────────
+  image:
+    name: Docker image (${{ matrix.workspace }})
+    needs: [lint, typecheck, test, build]
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        workspace: [backend, frontend]
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
+      # Builds the production image exactly as the server does (Alpine, npm ci), without pushing.
+      # Publishing to GHCR is done after merge (HEM-55).
+      - uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
+        with:
+          context: .
+          file: ${{ matrix.workspace }}/Dockerfile
+          push: false
+          cache-from: type=gha,scope=${{ matrix.workspace }}
+          cache-to: type=gha,mode=max,scope=${{ matrix.workspace }}
+
+  # Informational: not part of the CI result, so a SonarCloud outage can't block merges.
+  sonar:
+    name: SonarCloud
+    needs: [test]
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+      - name: Download coverage
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        continue-on-error: true
+        with:
+          name: coverage-backend
+          path: backend/coverage
+      - name: SonarCloud scan
+        if: env.SONAR_TOKEN != ''
+        uses: SonarSource/sonarqube-scan-action@e805d875275f728fac1885b413934be6d7c63f65 # v8.4.1
+
+  # ── Result ─────────────────────────────────────────────────────────
+  # The single required status check for branch rulesets (HEM-113).
+  result:
+    name: CI result
+    if: always()
+    needs: [secrets-scan, dependencies, codeql, lint, typecheck, test, build, image]
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: All required jobs passed
+        env:
+          RESULTS: ${{ toJSON(needs) }}
+        run: |
+          echo "$RESULTS" | jq -r 'to_entries[] | "\(.key): \(.value.result)"'
+          failed=$(echo "$RESULTS" | jq -r '[to_entries[] | select(.value.result != "success")] | length')
+          if [ "$failed" -ne 0 ]; then
+            echo "::error::$failed job(s) did not succeed."
+            exit 1
+          fi
