@@ -5,7 +5,7 @@ name: CI
 # Deploy workflows call this with `workflow_call`, so nothing deploys without passing it.
 on:
   pull_request:
-    branches: [dev, master, main]
+    branches: [dev, main]
   workflow_call:
   workflow_dispatch:
 
